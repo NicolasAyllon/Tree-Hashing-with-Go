@@ -7,3 +7,9 @@ https://github.com/udhos/update-golang
 Note: 
 The script said the following, but so far I left the old (renamed) file.
 "remember to delete previous install saved as: /usr/local/go-20221024-065220"
+
+To build (example)
+go build -o BST src/*.go
+
+To Run (example)
+./BST -hash-workers=5 -data-workers=4 -input="./input/simple.txt"
