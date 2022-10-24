@@ -1,0 +1,9 @@
+10-24-2022
+Installed go 1.19.2 updating from 1.12.7
+with script by @udhos found at 
+https://gist.github.com/nikhita/432436d570b89cab172dcf2894465753
+https://github.com/udhos/update-golang
+
+Note: 
+The script said the following, but so far I left the old (renamed) file.
+"remember to delete previous install saved as: /usr/local/go-20221024-065220"
