@@ -42,18 +42,28 @@ func main() {
 	fileScanner.Split(bufio.ScanLines)
 
 	// Create slice of trees
-	var trees []Tree
+	// var trees []Tree
 	// For each line in input file
 	for fileScanner.Scan() {
+		// Get slice of strings by splitting line by spaces
 		line := fileScanner.Text()
-		// Get slice of strings by splitting by spaces
 		val_strings := strings.Split(line, " ")
 		// Make slice of ints of same length and fill it with converted values
 		vals := make([]int, len(val_strings))
 		for i, s := range val_strings {
 			vals[i], _ = strconv.Atoi(s) // ignore second result _ = err
 		}
-		// Construct binary tree by inserting into tree
+		// Test 
+		
+		// Construct binary tree by inserting at root
+		var root *Tree = nil
+		for _, val := range vals {
+			Insert(root, val)
+		}
+		var traversal = InorderTraversal(root)
+
+		// Test
+		fmt.Printf("%T, %v -> %T, %v\n", vals, vals, traversal, traversal)
 
 		// Append tree to slice of Trees
 	}
