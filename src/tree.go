@@ -27,3 +27,19 @@ func Insert(t *Tree, val int) *Tree {
 	}
 	return t
 }
+
+// Return a slice containing the inorder traversal starting from node t
+// Note: By inorder traversal, vals in returned slice are automatically sorted.
+func InorderTraversal(t *Tree) []int {
+	// Base case: return empty slice
+	if t == nil {
+		return []int{}
+	}
+	// Otherwise: Recursively append left subtree's traversal, 
+	// then this node's value, and then right subtree's traversal.
+	var result []int
+	result = append(result, InorderTraversal(t.Left)...) 
+	result = append(result, t.Value)
+	result = append(result, InorderTraversal(t.Right)...)
+	return result
+}
