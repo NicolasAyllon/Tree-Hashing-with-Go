@@ -1,9 +1,9 @@
 import subprocess
 
 INPUTS =  [ 
-            "input/simple.txt",
-          #  "input/coarse.txt",
-          #  "input/fine.txt"
+          # "input/simple.txt" #,
+            "input/coarse.txt" #,
+          #  "input/fine.txt"  
           ]
 
 HASH_WORKERS = [21]
