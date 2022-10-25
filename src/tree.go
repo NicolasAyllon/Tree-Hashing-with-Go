@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 // Represents one node in a tree
 type Tree struct {
 	Value int
@@ -42,4 +46,28 @@ func InorderTraversal(t *Tree) []int {
 	result = append(result, t.Value)
 	result = append(result, InorderTraversal(t.Right)...)
 	return result
+}
+
+// Alternate version with additional parameter for pointer-to-slice
+func InorderTraversal2(t *Tree, traversal *[]int) {
+	// Base case:
+	if t == nil {
+		return
+	}
+	// Recursive case:
+	InorderTraversal2(t.Left, traversal)
+	*traversal = append(*traversal, t.Value)
+	InorderTraversal2(t.Right, traversal)
+}
+
+// Testing
+func PrintInorder(t *Tree) {
+	// Base case:
+	if t == nil {
+		return
+	}
+	// Recursive case:
+	PrintInorder(t.Left)
+	fmt.Printf("%v ", t.Value)
+	PrintInorder(t.Right)
 }

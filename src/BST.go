@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	// "sync"
+	"time"
 
 
 )
@@ -58,12 +59,35 @@ func main() {
 		// Construct binary tree by inserting at root
 		var root *Tree = nil
 		for _, val := range vals {
-			Insert(root, val)
+			// Insert(root, val)
+			root = Insert(root, val)
 		}
-		var traversal = InorderTraversal(root)
+		// Test if trees were successfully built by printing preorder traversal
+		// fmt.Printf("%v -> ", vals)
+		// PrintInorder(root)
+		// fmt.Println()
+		start := time.Now()
+		traversal1 := InorderTraversal(root)
+		_ = traversal1
+		end := time.Now()
+		elapsed := end.Sub(start)
+		fmt.Printf("traversal1 = %v\n", elapsed)
+
+		start = time.Now()
+		var traversal2 []int
+		InorderTraversal2(root, &traversal2)
+		_ = traversal2
+		end = time.Now()
+		elapsed = end.Sub(start)
+		fmt.Printf("traversal2 = %v\n", elapsed)
+
+		// Test 2
+		// var traversal []int
+		// InorderTraversal2(root, &traversal)
 
 		// Test
-		fmt.Printf("%T, %v -> %T, %v\n", vals, vals, traversal, traversal)
+		fmt.Println()
+		fmt.Printf("%T, %v -> %T, %v\n", vals, vals, traversal1, traversal1)
 
 		// Append tree to slice of Trees
 	}
