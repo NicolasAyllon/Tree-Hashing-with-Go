@@ -7,10 +7,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
 	// "sync"
 	"time"
-
-
 )
 
 func check(e error) {
@@ -54,8 +53,8 @@ func main() {
 		for i, s := range val_strings {
 			vals[i], _ = strconv.Atoi(s) // ignore second result _ = err
 		}
-		// Test 
-		
+		// Test
+
 		// Construct binary tree by inserting at root
 		var root *Tree = nil
 		for _, val := range vals {
@@ -66,28 +65,17 @@ func main() {
 		// fmt.Printf("%v -> ", vals)
 		// PrintInorder(root)
 		// fmt.Println()
+
 		start := time.Now()
-		traversal1 := InorderTraversal(root)
-		_ = traversal1
+		traversal := make([]int, 0, len(vals))
+		InorderTraversal(root, &traversal)
 		end := time.Now()
 		elapsed := end.Sub(start)
-		fmt.Printf("traversal1 = %v\n", elapsed)
-
-		start = time.Now()
-		var traversal2 []int
-		InorderTraversal2(root, &traversal2)
-		_ = traversal2
-		end = time.Now()
-		elapsed = end.Sub(start)
-		fmt.Printf("traversal2 = %v\n", elapsed)
-
-		// Test 2
-		// var traversal []int
-		// InorderTraversal2(root, &traversal)
+		fmt.Printf("traversal3 = %v\n", elapsed)
 
 		// Test
 		fmt.Println()
-		fmt.Printf("%T, %v -> %T, %v\n", vals, vals, traversal1, traversal1)
+		// fmt.Printf("%T, %v -> %T, %v\n", vals, vals, traversal1, traversal1)
 
 		// Append tree to slice of Trees
 	}
