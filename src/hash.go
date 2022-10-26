@@ -14,3 +14,14 @@ func hash(tree *Tree) int {
 	}
 	return hash
 }
+
+// TODO: Not sure what this should return. Just a slice of hashes?
+func hashTrees(trees []*Tree) map[*Tree]int {
+	// hashmap := make(map[*Tree]int)
+
+	// For each *Tree in trees
+	// Generate hash
+	// Append to slice
+	// Return slice
+
+}
