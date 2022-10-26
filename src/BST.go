@@ -30,6 +30,6 @@ func main() {
 		fmt.Println()
 	}
 
+	hashmap = HashTrees(trees)
 
-	
 }
