@@ -17,7 +17,7 @@ func check(e error) {
 
 // Reads the provided file (1 tree per line, values inserted in order)
 // Returns a slice of *Tree where each points to the root of a BST.
-func ReadTreesFromFile (filename string) []*Tree {
+func readTreesFromFile(filename string) []*Tree {
 
 	// Read input file
 	readFile, err := os.Open(filename)
@@ -42,15 +42,8 @@ func ReadTreesFromFile (filename string) []*Tree {
 		// Construct binary tree by inserting at root
 		var root *Tree = nil
 		for _, val := range vals {
-			root = Insert(root, val)
+			root = insert(root, val)
 		}
-
-		traversal := make([]int, 0, len(vals))
-		InorderTraversal(root, &traversal)
-
-		// Test
-		// fmt.Printf("%T, %v -> %T, %v\n", vals, vals, traversal, traversal)
-		// fmt.Println()
 
 		// Append root to trees
 		trees = append(trees, root)
