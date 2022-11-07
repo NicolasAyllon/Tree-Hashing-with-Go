@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -55,18 +56,39 @@ func readTreesFromFile(filename string) []*Tree {
 
 // print hashTime
 
-// print hashGroups
-func outputHashGroups(m map[int]*[]int) {
-	for hash, ids := range m {
-		if len(*ids) > 1 {
-			fmt.Printf("%v: %s\n", hash, strings.Join((*ids)[:], " "))
+// print hashGroups, sorted by key
+func outputHashGroupsSorted(m map[int]*[]int) {
+	// Fill slice with keys and then sort it
+	keys := make([]int, len(m))
+	i := 0
+	for k := range m {
+		keys[i] = k
+		i++
+	}
+	sort.Ints(keys)
+	// Iterate through sorted slice of keys and corresponding values from map
+	for _, hash := range keys {
+		ids := m[hash]
+		if(len(*ids) > 1) {
+			fmt.Printf("%v: %s\n", hash, intsToString(*ids, " "))
 		}
 	}
 }
 
-func intsToString(vals []int, sep string) {
-	s := make([]string, len(vals))
-	for i, val := range vals {
-		s[i] = //ITOA
+// print hashGroups
+func outputHashGroups(m map[int]*[]int) {
+	for hash, ids := range m {
+		// But only print for hashes matching more than 1 tree
+		if len(*ids) > 1 {
+			fmt.Printf("%v: %s\n", hash, intsToString(*ids, " "))
+		}
 	}
+}
+
+func intsToString(vals []int, sep string) string {
+	valStrings := make([]string, len(vals))
+	for i, val := range vals {
+		valStrings[i] = strconv.Itoa(val)
+	}
+	return strings.Join(valStrings[:], " ")
 }

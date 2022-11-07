@@ -8,8 +8,11 @@ import (
 	// "strconv"
 	// "strings"
 	// "sync"
-	// "time"
+	"time"
 )
+
+// Global timer variables
+var hashTime, hashGroupTime, compareTreeTime time.Duration
 
 func main() {
 
@@ -30,10 +33,13 @@ func main() {
 	}
 
 	// Calculate hashes
+	start := time.Now()
 	hashes := hashTrees(trees)
+	hashTime = time.Since(start)
 	fmt.Printf("hashes: %v\n", hashes)
 
 	// Group hashes
 	mapHashToIds := mapHashesToTreeIds(hashes)
 	printHashGroups(mapHashToIds)
+	outputHashGroupsSorted(mapHashToIds)
 }
