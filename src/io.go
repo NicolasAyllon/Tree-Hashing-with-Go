@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	// "fmt"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -51,4 +51,22 @@ func readTreesFromFile(filename string) []*Tree {
 
 	// Return the slice of *Tree
 	return trees
+}
+
+// print hashTime
+
+// print hashGroups
+func outputHashGroups(m map[int]*[]int) {
+	for hash, ids := range m {
+		if len(*ids) > 1 {
+			fmt.Printf("%v: %s\n", hash, strings.Join((*ids)[:], " "))
+		}
+	}
+}
+
+func intsToString(vals []int, sep string) {
+	s := make([]string, len(vals))
+	for i, val := range vals {
+		s[i] = //ITOA
+	}
 }

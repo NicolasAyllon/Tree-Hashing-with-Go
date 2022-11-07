@@ -22,12 +22,18 @@ func main() {
 	// Testing
 	fmt.Printf("hash-workers = %v\ndata-workers = %v\ncomp-workers = %v\ninput = %v\n", *nHashWorkers, *nDataWorkers, *nCompWorkers, *inputFile)
 
+	// Read trees from file into slice
 	var trees []*Tree = readTreesFromFile(*inputFile)
 	for _, tree := range trees {
 		printInorder(tree)
 		fmt.Println()
 	}
 
-	// hashmap = hashTrees(trees)
+	// Calculate hashes
+	hashes := hashTrees(trees)
+	fmt.Printf("hashes: %v\n", hashes)
 
+	// Group hashes
+	mapHashToIds := mapHashesToTreeIds(hashes)
+	printHashGroups(mapHashToIds)
 }

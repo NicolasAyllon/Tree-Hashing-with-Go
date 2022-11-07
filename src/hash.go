@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 // Consider adding struct HashGroup later
 // which will contain truly identical trees
 
@@ -18,22 +22,59 @@ func hash(tree *Tree) int {
 	return hash
 }
 
-// TODO: Not sure what this should return. Just a slice of hashes?
-func hashTrees(trees []*Tree) map[int]*[]int {
-	hashToTreeIDs := make(map[int]*[]int)
+// Returns a slice containing the hash for each tree.
+// Example: hash[9] = 610 means the tree with index/ID 9 has hash 610
+func hashTrees(trees []*Tree) []int {
+	n := len(trees)
+	hashes := make([]int, n)
+	for id, tree := range trees {
+		hashes[id] = hash(tree)
+	}
+	return hashes
+}
+
+// Returns a map from hash (int) -> slice of Ids (int) of trees with that hash
+// Input: slice of precomputed hashes
+func mapHashesToTreeIds(hashes []int) map[int]*[]int {
+	hashToTreeIds := make(map[int]*[]int)
+	for id, hash := range hashes {
+		ids, inMap := hashToTreeIds[hash]
+		if inMap {
+			*ids = append(*ids, id)
+		} else {
+			newListIds := []int{id}
+			hashToTreeIds[hash] = &newListIds
+		}
+	}
+	return hashToTreeIds
+}
+
+// Returns a map from hash (int) -> slice of IDs (int) of trees with that hash
+// Example: map[307] = []{2, 4, 9} means hash value 307 is shared by trees
+// with ID (index) 2, 4, and 9
+func mapHashesToTreeIdsDirect(trees []*Tree) map[int]*[]int {
+	hashToTreeIds := make(map[int]*[]int)
 	// For each *Tree in trees
 	for id, tree := range trees {
 		hash := hash(tree)
 		// Attempt to find key in map
-		ids, seen := hashToTreeIDs[hash]
+		ids, inMap := hashToTreeIds[hash]
 		// If hash is already a key in map, add current ID to the pointed slice
-		if seen {
+		if inMap {
 			*ids = append(*ids, id)
 		} else {
 			// Otherwise add this hash as key and put ID (index) in value slice
 			newIdList := []int{id}
-			hashToTreeIDs[hash] = &newIdList
+			hashToTreeIds[hash] = &newIdList
 		}
 	}
-	return hashToTreeIDs
+	// Return map
+	return hashToTreeIds
+}
+
+// Prints hash groups including those with only 1 Id
+func printHashGroups(m map[int]*[]int) {
+	for hash, ids := range m {
+		fmt.Printf("%v: %v\n", hash, *ids)
+	}
 }
