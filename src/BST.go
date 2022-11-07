@@ -27,19 +27,23 @@ func main() {
 
 	// Read trees from file into slice
 	var trees []*Tree = readTreesFromFile(*inputFile)
-	for _, tree := range trees {
-		printInorder(tree)
-		fmt.Println()
-	}
+	// printTrees(trees)
 
 	// Calculate hashes
 	start := time.Now()
 	hashes := hashTrees(trees)
 	hashTime = time.Since(start)
-	fmt.Printf("hashes: %v\n", hashes)
+	fmt.Printf("hashTime = %v\n", hashTime)
 
 	// Group hashes
+	start = time.Now()
 	mapHashToIds := mapHashesToTreeIds(hashes)
-	printHashGroups(mapHashToIds)
+	hashGroupTime = time.Since(start)
+	fmt.Printf("hashGroupTime = %v\n", hashGroupTime)
+	// printHashGroups(mapHashToIds)
 	outputHashGroupsSorted(mapHashToIds)
+
+	// Compare possible duplicate trees with the same hash
+	// and put identical trees in Groups
+	
 }

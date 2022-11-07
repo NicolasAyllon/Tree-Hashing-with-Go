@@ -45,6 +45,28 @@ func writeInorderTraversal(t *Tree, traversal *[]int) {
 	writeInorderTraversal(t.Right, traversal)
 }
 
+// Return whether two trees are equivalent (have the same inorder traversal)
+func (t1 *Tree)isEquivalentTo(t2 *Tree) bool {
+	// If only one pointer is nil, or pointers match, return result immediately.
+	if(t1 == nil && t2 != nil || t1 != nil && t2 == nil) { return false } 
+	if(t1 == t2) { return true }
+	// Otherwise get inorder traversals of both trees
+	traversal1 := []int{}; writeInorderTraversal(t1, &traversal1)
+	traversal2 := []int{}; writeInorderTraversal(t2, &traversal2)
+	// Trees with unequal lengths (different numbers of nodes) can't be the same.
+	if(len(traversal1) != len(traversal2)) { 
+		return false 
+	}
+	// Compare element by element
+	for i := range traversal1 {
+		if traversal1[i] != traversal2[i] { 
+			return false
+		}
+	}
+	// No elements differed
+	return true
+}
+
 // Unused:
 // Previous version with longer measured execution time
 func getInorderTraversal(t *Tree) []int {
@@ -72,3 +94,12 @@ func printInorder(t *Tree) {
 	fmt.Printf("%v ", t.Value)
 	printInorder(t.Right)
 }
+
+// Testing
+func printTrees(trees []*Tree) {
+	for _, tree := range trees {
+		printInorder(tree)
+		fmt.Println()
+	}
+}
+ 
