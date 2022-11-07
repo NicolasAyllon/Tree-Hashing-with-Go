@@ -85,6 +85,28 @@ func outputHashGroups(m map[int]*[]int) {
 	}
 }
 
+// Given a Group slice where each group has 1 or more tree Ids,
+// only output groups with duplicates (2+ trees). 
+// Group Id to display is calculated in this function with incrementing index
+func outputGroupsDuplicatesOnly(groups []Group) {
+	id_shown := 0
+	for _, group := range groups {
+		// But only print groups
+		if(len(group.TreeIds) > 1) {
+			fmt.Printf("group %v: %s\n", id_shown, intsToString(group.TreeIds, " "))
+			id_shown++
+		}
+	}
+}
+
+func printUniqueGroups(groups []Group) {
+	for i, group := range groups {
+		fmt.Printf("group %v: %s\n", i, intsToString(group.TreeIds, " "))
+	}
+}
+
+// Helping function to take a slice of ints and 
+// return a string representation with separator string sep (usually " ")
 func intsToString(vals []int, sep string) string {
 	valStrings := make([]string, len(vals))
 	for i, val := range vals {
