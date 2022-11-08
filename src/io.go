@@ -97,10 +97,11 @@ func outputGroupsWithDuplicates(groups []Group) {
 	}
 }
 
+// These functions output groups of unique tree Ids that are sorted
+// based on the Id of the first tree in the group.
 func outputAllGroupsSorted(groups []Group) {
 	outputGroupsSorted(groups, true)
 }
-
 func outputGroupsWithDuplicatesSorted(groups []Group) {
 	outputGroupsSorted(groups, false)
 }
