@@ -44,11 +44,13 @@ func main() {
 	// printHashGroups(mapHashToIds)
 	outputHashGroupsSorted(mapHashToIds)
 
-	// Compare possible duplicate trees with the same hash
+	// Compare possible duplicate trees with the same hash 
 	// and put identical trees in Groups
-	// TODO: add timing
+	start = time.Now()
 	uniqueGroups := compareTreesAndGroup(trees, mapHashToIds)
-	printUniqueGroups(uniqueGroups)
+	compareTreeTime = time.Since(start)
+	fmt.Printf("compareTreeTime = %v\n", compareTreeTime)
+	// printAllGroups(uniqueGroups)
+	outputGroupsWithDuplicatesSorted(uniqueGroups)
 
-	
 }

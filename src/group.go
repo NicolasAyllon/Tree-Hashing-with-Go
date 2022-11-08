@@ -22,6 +22,9 @@ func (g Group) firstId() int {
 func (g *Group) add(id int) {
 	g.TreeIds = append(g.TreeIds, id)
 }
+// [?] I think this works, but if there are problems consider using pointer:
+// treeIds := &g.TreeIds; 
+// *treeIds = append(*treeIds, id)
 
 // Tries to find a match in groups for given Id.
 // If a match is found, the Id is inserted into that group and true is returned
