@@ -1,3 +1,6 @@
 #ignore large files
 /utils
 /update-golang
+#ignore large reference outputs
+/output-references
+output.txt

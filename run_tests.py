@@ -2,7 +2,7 @@ import subprocess
 
 INPUTS =  [ 
             "input/simple.txt"   #,
-          #  "input/coarse.txt"  #,
+          #  "input/coarse.txt"   #,
           #  "input/fine.txt"  
           ]
 
