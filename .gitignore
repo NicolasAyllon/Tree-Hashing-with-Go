@@ -1,6 +1,10 @@
-#ignore large files
+# ignore large files
 /utils
 /update-golang
-#ignore large reference outputs
+
+# ignore large reference outputs
 /output-references
 output.txt
+
+# executable
+BST

@@ -48,7 +48,7 @@ func hashTreesInSlice(trees []*Tree, hashes []int, wg *sync.WaitGroup, tid int) 
 }
 
 // Given a slice of trees, create and return a slice of hashes.
-// Let t be the number of threads/goroutines an divide the work approximately
+// For a given number of threads/goroutines, divide the work approximately
 // evenly between them.
 func hashTreesParallel(trees []*Tree, threads int) []int {
 	N := len(trees)
@@ -59,7 +59,7 @@ func hashTreesParallel(trees []*Tree, threads int) []int {
 	// Create wait group and set counter to the number of threads
 	var wg sync.WaitGroup
 	wg.Add(threads)
-	
+
 	// Launch goroutines
 	start := 0
 	// First r threads for slices of length q + 1 
