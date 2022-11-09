@@ -51,24 +51,31 @@ func hashTreesInSlice(trees []*Tree, hashes []int, wg *sync.WaitGroup, tid int) 
 // Let t be the number of threads/goroutines an divide the work approximately
 // evenly between them.
 func hashTreesParallel(trees []*Tree, threads int) []int {
-	N := len(trees) // total number of trees
-	hashes := make([]int, len(trees))
-	// Calculate number of trees each thread (except maybe the last) will hash.
-	nPerThread := len(trees) / threads
+	N := len(trees)
+	hashes := make([]int, N)
+	// Calculate quotient (q) and remainder (r) to divide trees between threads
+	q := N / threads
+	r := N % threads
 	// Create wait group and set counter to the number of threads
 	var wg sync.WaitGroup
 	wg.Add(threads)
-	// Create goroutines
-	for t := 0; t < threads-1; t++ {
-		start := t * nPerThread
-		end := (t + 1) * nPerThread
+	
+	// Launch goroutines
+	start := 0
+	// First r threads for slices of length q + 1 
+	// (the remainder r is spread over these, which each take 1 more tree)
+	for t := 0; t < r; t++ {
+		end := start + (q + 1)
 		fmt.Printf("thread %v: start: %v, end: %v\n", t, start, end)
-		if end > N {
-			fmt.Printf("end > N : %v > %v, reassigning to N = %v\n", end, N, N)
-			end = N
-		}
-
 		go hashTreesInSlice(trees[start:end], hashes[start:end], &wg, t)
+		start = end
+	}
+	// Remaining threads for slices of length q
+	for t := r; t < threads; t++ {
+		end := start + q
+		fmt.Printf("thread %v: start: %v, end: %v\n", t, start, end)
+		go hashTreesInSlice(trees[start:end], hashes[start:end], &wg, t)
+		start = end
 	}
 	wg.Wait()
 	return hashes
