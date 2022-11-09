@@ -31,10 +31,13 @@ func main() {
 
 	// Calculate hashes
 	start := time.Now()
-	hashes := hashTrees(trees)
+	// hashes := hashTrees(trees)
+	hashes := hashTreesParallel(trees, *nHashWorkers)
 	hashTime = time.Since(start)
 	fmt.Printf("hashTime = %v\n", hashTime)
+	
 
+	return // TODO: testing, remove later
 	// Group hashes
 	start = time.Now()
 	mapHashToIds := mapHashesToTreeIds(hashes)
