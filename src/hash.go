@@ -5,9 +5,6 @@ import (
 	"sync"
 )
 
-// Consider adding struct HashGroup later
-// which will contain truly identical trees
-
 // Lab 3 provided hash function
 // Takes as argument the root of a BST and returns a hash in the range 0-999
 func hash(tree *Tree) int {
