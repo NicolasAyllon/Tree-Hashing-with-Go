@@ -22,15 +22,15 @@ func (m singleLockMap) addToMap(hash int, treeId int) {
 	m.mutex.Unlock()
 }
 
-
 // Optional Implementation 1:
 // map where every slice is protected with a lock.
 // There is a map-wide lock for insertions.
 type fineLockMap struct {
 	hashToIds map[int]*safeSlice
-	mutex sync.Mutex
+	mutex     sync.Mutex
 }
 
+// The map's values are safeSlices, which have atomic appends.
 type safeSlice struct {
 	ids   []int
 	mutex sync.Mutex
@@ -53,11 +53,14 @@ func (s *safeSlice) add(id int) {
 func (m fineLockMap) insert(hash int, id int) {
 	// Lock entire map only for an insertion.
 	m.mutex.Lock()
-	// The hash was missing from the map (and is why insert was called)
+	// The hash was missing from the map (that's why insert(...) was called)
 	// but check again here in case a thread added it since then.
-	_, isInMap := m.hashToIds[hash]
+	ids, isInMap := m.hashToIds[hash]
 	if !isInMap {
 		m.hashToIds[hash] = NewSafeSlice(id)
+	} else {
+		// Another thread added the entry already, so add this tree Id to it.
+		ids.add(id)
 	}
 	m.mutex.Unlock()
 }
