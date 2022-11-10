@@ -9,11 +9,17 @@ type singleLockMap struct {
 	mutex     sync.Mutex
 }
 
+func newSingleLockMap() *singleLockMap {
+	s := singleLockMap{hashToIds: make(map[int]*[]int)}
+	// mutex has default zero-value (unlocked)
+	return &s
+}
+
 // Lock the entire map for any change
 func (m singleLockMap) addToMap(hash int, treeId int) {
 	m.mutex.Lock()
-	ids, isInMap := m.hashToIds[hash]
-	if isInMap {
+	ids, inMap := m.hashToIds[hash]
+	if inMap {
 		*ids = append(*ids, treeId)
 	} else {
 		newListIds := []int{treeId}
@@ -55,8 +61,8 @@ func (m fineLockMap) insert(hash int, id int) {
 	m.mutex.Lock()
 	// The hash was missing from the map (that's why insert(...) was called)
 	// but check again here in case a thread added it since then.
-	ids, isInMap := m.hashToIds[hash]
-	if !isInMap {
+	ids, inMap := m.hashToIds[hash]
+	if !inMap {
 		m.hashToIds[hash] = NewSafeSlice(id)
 	} else {
 		// Another thread added the entry already, so add this tree Id to it.
@@ -69,8 +75,8 @@ func (m fineLockMap) insert(hash int, id int) {
 // If the hash is not in the map, a new entry and slice (with Id) is created.
 // If the hash already exists in the map, the Id is added to its slice.
 func (m fineLockMap) add(hash int, id int) {
-	ids, isInMap := m.hashToIds[hash]
-	if isInMap {
+	ids, inMap := m.hashToIds[hash]
+	if inMap {
 		ids.add(id)
 	} else {
 		m.insert(hash, id)

@@ -77,7 +77,7 @@ func hashTreesParallel(trees []*Tree, threads int) []int {
 
 // Returns a map from hash (int) -> slice of Ids (int) of trees with that hash
 // Input: slice of precomputed hashes
-func mapHashesToTreeIds(hashes []int) map[int]*[]int {
+func mapHashesToIds(hashes []int) map[int]*[]int {
 	hashToTreeIds := make(map[int]*[]int)
 	for id, hash := range hashes {
 		ids, inMap := hashToTreeIds[hash]
@@ -111,7 +111,7 @@ type HashBSTPair struct {
 
 // Each goroutine is responsible for a portion of the hashes slice and sends
 // (hash, Id) pairs to the main goroutine (mapHashesToTreeIdsParallel)
-func mapHashesToTreeIdsInSlice(hashes []int, ch chan HashBSTPair, wg *sync.WaitGroup) {
+func mapHashesToIdsInSliceToChannel(hashes []int, ch chan HashBSTPair, wg *sync.WaitGroup) {
 	for id, hash := range hashes {
 		ch <- HashBSTPair{hash: hash, treeId: id}
 	}
@@ -122,7 +122,7 @@ func mapHashesToTreeIdsInSlice(hashes []int, ch chan HashBSTPair, wg *sync.WaitG
 // The given number of threads/goroutines are spawned.
 // Each goroutine covers a portion of the hashes slice, and sends (hash, Id)
 // pairs to a central goroutine, which is this function.
-func mapHashesToTreeIdsParallel(hashes []int, threads int) map[int]*[]int {
+func mapHashesToIdsParallelOneChannel(hashes []int, threads int) map[int]*[]int {
 	hashToTreeIds := make(map[int]*[]int)
 	ch := make(chan HashBSTPair)
 
@@ -138,13 +138,13 @@ func mapHashesToTreeIdsParallel(hashes []int, threads int) map[int]*[]int {
 	for t := 0; t < r; t++ {
 		start = end
 		end = start + (q + 1)
-		go mapHashesToTreeIdsInSlice(hashes[start:end], ch, &wg)
+		go mapHashesToIdsInSliceToChannel(hashes[start:end], ch, &wg)
 	}
 	// Rest of threads process only q elements
 	for t := r; t < threads; t++ {
 		start = end
 		end = start + q
-		go mapHashesToTreeIdsInSlice(hashes[start:end], ch, &wg)
+		go mapHashesToIdsInSliceToChannel(hashes[start:end], ch, &wg)
 	}
 	// Wait for all goroutines to finish and then close channel.
 	// https://stackoverflow.com/questions/21819622/
@@ -159,11 +159,52 @@ func mapHashesToTreeIdsParallel(hashes []int, threads int) map[int]*[]int {
 	return hashToTreeIds
 }
 
+
+// Each goroutine is responsible for a portion of the hashes slice and
+// updates the singleLockMap by itself.
+// [!] It seems that each goroutine is using the subslice index instead of the
+// [!] global slice index. For example, if sub := s[4:8], sub[1] = s[5].
+func mapHashesToIdsInSliceToLockedMap(hashes []int, s *singleLockMap, wg *sync.WaitGroup) {
+	for id, hash := range hashes {
+		s.addToMap(hash, id)
+	}
+	wg.Done()
+}
+
+func mapHashesToIdsParallelLockedMap(hashes []int, threads int) map[int]*[]int {
+	s := newSingleLockMap()
+
+	N := len(hashes)
+	q := N / threads // quotient
+	r := N % threads // remainder
+
+	var wg sync.WaitGroup
+	wg.Add(threads)
+	start := 0
+	end := 0
+	// Remainder r distributed to first r threads, which process 1 extra (q + 1)
+	for t := 0; t < r; t++ {
+		start = end
+		end = start + (q + 1)
+		go mapHashesToIdsInSliceToLockedMap(hashes[start:end], s, &wg)
+	}
+	// Rest of threads process only q elements
+	for t := r; t < threads; t++ {
+		start = end
+		end = start + q
+		go mapHashesToIdsInSliceToLockedMap(hashes[start:end], s, &wg)
+	}
+	// Wait for all goroutines to finish
+	wg.Wait()
+	// Return the underlying map[int]*[]int from singleLockMap
+	return s.hashToIds
+}
+
 // UNUSED
 // Returns a map from hash (int) -> slice of IDs (int) of trees with that hash
 // Example: map[307] = []{2, 4, 9} means hash value 307 is shared by trees
 // with ID (index) 2, 4, and 9
-func mapHashesToTreeIdsDirect(trees []*Tree) map[int]*[]int {
+func mapHashesToIdsDirect(trees []*Tree) map[int]*[]int {
 	hashToTreeIds := make(map[int]*[]int)
 	// For each *Tree in trees
 	for id, tree := range trees {

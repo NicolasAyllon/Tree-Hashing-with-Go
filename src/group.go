@@ -4,6 +4,9 @@ import (
 	"fmt"
 )
 
+// [?] For parallel compare, do I need to create a new struct, safeGroupList
+// [?] for concurrent appends?
+
 // Group holds tree Ids that have been compared and verified to be equivalent
 type Group struct {
 	GroupId int
@@ -22,8 +25,9 @@ func (g Group) firstId() int {
 func (g *Group) add(id int) {
 	g.TreeIds = append(g.TreeIds, id)
 }
+
 // [?] I think this works, but if there are problems consider using pointer:
-// treeIds := &g.TreeIds; 
+// treeIds := &g.TreeIds;
 // *treeIds = append(*treeIds, id)
 
 // Tries to find a match in groups for given Id.
@@ -61,7 +65,8 @@ func compareTreesAndGroup(trees []*Tree, mapHashToIds map[int]*[]int) []Group {
 			match := insertInExistingGroups(id, currentGroups, trees)
 			// Otherwise match = false, so create a new group for this Id and append
 			if !match {
-				newGroup := Group{i, []int{id}}; i++
+				newGroup := Group{i, []int{id}}
+				i++
 				currentGroups = append(currentGroups, newGroup)
 			}
 		}
@@ -99,7 +104,8 @@ func compareTreesAndGroupOld(trees []*Tree, mapHashToIds map[int]*[]int) []Group
 			// This tree did not match any in currentGroups
 			// So, create a new group for it and add to currentGroups
 			if !match {
-				newGroup := Group{i, []int{id}}; i++
+				newGroup := Group{i, []int{id}}
+				i++
 				currentGroups = append(currentGroups, newGroup)
 			}
 		}
