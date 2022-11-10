@@ -35,13 +35,10 @@ func hashTrees(trees []*Tree) []int {
 // Hashes trees and writes the results into the slice.
 // NOTE: trees and hashes must have the same length.
 func hashTreesInSlice(trees []*Tree, hashes []int, wg *sync.WaitGroup, tid int) {
-	defer func() {
-		// fmt.Printf("done\n")
-		wg.Done()
-	}()
 	for i := range trees {
 		hashes[i] = hash(trees[i])
 	}
+	wg.Done()
 }
 
 // Given a slice of trees, create and return a slice of hashes.
@@ -94,39 +91,65 @@ func mapHashesToTreeIds(hashes []int) map[int]*[]int {
 	return hashToTreeIds
 }
 
+// Helper method to compact addition of (hash, BST Id) pair to map
+// Adds Id to existing slice if hash in map, and creates new entry if not.
+func addPairToMap(m map[int]*[]int, hash int, id int) {
+	ids, inMap := m[hash]
+	if inMap {
+		*ids = append(*ids, id)
+	} else {
+		newListIds := []int{id}
+		m[hash] = &newListIds
+	}
+}
+
 // Used to send (hash, BST Id) pairs via channel in parallel implementation
 type HashBSTPair struct {
 	hash   int
 	treeId int
 }
 
-func mapHashesToTreeIdsInSlice(hashes []int, ch chan HashBSTPair) {
+func mapHashesToTreeIdsInSlice(hashes []int, ch chan HashBSTPair, wg *sync.WaitGroup) {
 	for id, hash := range hashes {
-		ch <- HashBSTPair{id, hash}
+		ch <- HashBSTPair{ hash: hash, treeId: id}
 	}
+	wg.Done()
 }
 
 func mapHashesToTreeIdsParallel(hashes []int, threads int) map[int]*[]int {
 	hashToTreeIds := make(map[int]*[]int)
 	ch := make(chan HashBSTPair)
+
 	N := len(hashes)
 	q := N / threads // quotient
 	r := N % threads // remainder
+
+	var wg sync.WaitGroup
+	wg.Add(threads)
 	start := 0
 	end := 0
 	// Remainder r distributed to first r threads, which process 1 extra (q + 1)
 	for t := 0; t < r; t++ {
 		start = end
 		end = start + (q + 1)
-		go mapHashesToTreeIdsInSlice(hashes[start:end], ch)
+		go mapHashesToTreeIdsInSlice(hashes[start:end], ch, &wg)
 	}
 	// Rest of threads process only q elements
 	for t := r; t < threads; t++ {
 		start = end
 		end = start + q
-		go mapHashesToTreeIdsInSlice(hashes[start:end], ch)
+		go mapHashesToTreeIdsInSlice(hashes[start:end], ch, &wg)
 	}
-	// [?] receive from channel and put in map
+	// Wait for all goroutines to finish and then close channel.
+	// https://stackoverflow.com/questions/21819622/
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+	// Receive from channel and put in map
+	for pair := range ch {
+		addPairToMap(hashToTreeIds, pair.hash, pair.treeId)
+	}
 	return hashToTreeIds
 }
 
