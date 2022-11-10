@@ -64,7 +64,7 @@ func main() {
 		fmt.Printf("hashTime = %v\n", hashTime)
 		fmt.Printf("hashes: %v\n", hashes)
 
-		// mapHashToIds := mapHashesToTreeIdsParallel(hashes, *nDataWorkers)
+		mapHashToIds := mapHashesToTreeIdsParallel(hashes, *nDataWorkers)
 	}
 
 	// This implementation spawns i goroutines to compute the hashes of the

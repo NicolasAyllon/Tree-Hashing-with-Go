@@ -59,7 +59,7 @@ func hashTreesParallel(trees []*Tree, threads int) []int {
 
 	// Launch goroutines
 	start := 0
-	// First r threads for slices of length q + 1 
+	// First r threads for slices of length q + 1
 	// (the remainder r is spread over these, which each take 1 more tree)
 	for t := 0; t < r; t++ {
 		end := start + (q + 1)
@@ -94,6 +94,43 @@ func mapHashesToTreeIds(hashes []int) map[int]*[]int {
 	return hashToTreeIds
 }
 
+// Used to send (hash, BST Id) pairs via channel in parallel implementation
+type HashBSTPair struct {
+	hash   int
+	treeId int
+}
+
+func mapHashesToTreeIdsInSlice(hashes []int, ch chan HashBSTPair) {
+	for id, hash := range hashes {
+		ch <- HashBSTPair{id, hash}
+	}
+}
+
+func mapHashesToTreeIdsParallel(hashes []int, threads int) map[int]*[]int {
+	hashToTreeIds := make(map[int]*[]int)
+	ch := make(chan HashBSTPair)
+	N := len(hashes)
+	q := N / threads // quotient
+	r := N % threads // remainder
+	start := 0
+	end := 0
+	// Remainder r distributed to first r threads, which process 1 extra (q + 1)
+	for t := 0; t < r; t++ {
+		start = end
+		end = start + (q + 1)
+		go mapHashesToTreeIdsInSlice(hashes[start:end], ch)
+	}
+	// Rest of threads process only q elements
+	for t := r; t < threads; t++ {
+		start = end
+		end = start + q
+		go mapHashesToTreeIdsInSlice(hashes[start:end], ch)
+	}
+	// [?] receive from channel and put in map
+	return hashToTreeIds
+}
+
+// UNUSED
 // Returns a map from hash (int) -> slice of IDs (int) of trees with that hash
 // Example: map[307] = []{2, 4, 9} means hash value 307 is shared by trees
 // with ID (index) 2, 4, and 9
