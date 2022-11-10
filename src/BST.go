@@ -36,35 +36,49 @@ func main() {
 
 	// Read trees from file into slice
 	var trees []*Tree = readTreesFromFile(*inputFile)
-	// printTrees(trees)
+	// For cmdline argument -hash-workers=-1, use the number of trees N
+	if(*nHashWorkers == -1) {
+		*nHashWorkers = len(trees)
+		fmt.Printf("nHashWorkers set to %v\n", *nHashWorkers)
+	}
 
 	// Calculate hashes
 	var hashes []int
+
 	// Sequential implementation
 	if *nHashWorkers == 1 && *nDataWorkers == 1 {
 		start := time.Now()
 		hashes = hashTrees(trees)
 		hashTime = time.Since(start)
 		fmt.Printf("hashTime = %v\n", hashTime)
+		fmt.Printf("hashes: %v\n", hashes)
 	}
+
+	// This implementation spawns i goroutines to compute the hashes of the
+	// input BSTs. Each goroutine sends its (hash, BST ID) pair(s) to a central
+	// manager goroutine using a channel. The central manager updates the map.
 	if *nHashWorkers > 1 && *nDataWorkers == 1 {
-		// This implementation spawns i goroutines to compute the hashes of the
-		// input BSTs. Each goroutine sends its (hash, BST ID) pair(s) to a central
-		// manager goroutine using a channel. The central manager updates the map.
 		start := time.Now()
 		hashes = hashTreesParallel(trees, *nHashWorkers)
 		hashTime = time.Since(start)
 		fmt.Printf("hashTime = %v\n", hashTime)
+		fmt.Printf("hashes: %v\n", hashes)
+
+		// mapHashToIds := mapHashesToTreeIdsParallel(hashes, *nDataWorkers)
 	}
+
+	// This implementation spawns i goroutines to compute the hashes of the
+	// input BSTs. Each goroutine updates the map individually after acquiring
+	// the mutex.
 	if *nHashWorkers > 1 && *nDataWorkers > 1 && *nHashWorkers == *nDataWorkers {
-		// This implementation spawns i goroutines to compute the hashes of the
-		// input BSTs. Each goroutine updates the map individually after acquiring
-		// the mutex.
+	
 	}
+
+	// OPTIONAL (If implemented, nest 2nd condition into above block?)
+	// This implementation spawns i goroutines to compute the hashes of the
+	// input BSTs. Then j goroutines are spawned to update the map.
 	if *nHashWorkers > 1 && *nDataWorkers > 1 && *nHashWorkers > *nDataWorkers {
-		// OPTIONAL (If implemented, nest 2nd condition into above block?)
-		// This implementation spawns i goroutines to compute the hashes of the
-		// input BSTs. Then j goroutines are spawned to update the map.
+	
 	}
 
 

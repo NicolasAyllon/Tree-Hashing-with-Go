@@ -31,12 +31,12 @@ func hashTrees(trees []*Tree) []int {
 	return hashes
 }
 
-// Helping function:
+// Helper for hashTreesParallel
 // Hashes trees and writes the results into the slice.
 // NOTE: trees and hashes must have the same length.
 func hashTreesInSlice(trees []*Tree, hashes []int, wg *sync.WaitGroup, tid int) {
 	defer func() {
-		fmt.Printf("done\n")
+		// fmt.Printf("done\n")
 		wg.Done()
 	}()
 	for i := range trees {
@@ -63,14 +63,14 @@ func hashTreesParallel(trees []*Tree, threads int) []int {
 	// (the remainder r is spread over these, which each take 1 more tree)
 	for t := 0; t < r; t++ {
 		end := start + (q + 1)
-		fmt.Printf("thread %v: start: %v, end: %v\n", t, start, end)
+		// fmt.Printf("thread %v: start: %v, end: %v\n", t, start, end)
 		go hashTreesInSlice(trees[start:end], hashes[start:end], &wg, t)
 		start = end
 	}
 	// Remaining threads for slices of length q
 	for t := r; t < threads; t++ {
 		end := start + q
-		fmt.Printf("thread %v: start: %v, end: %v\n", t, start, end)
+		// fmt.Printf("thread %v: start: %v, end: %v\n", t, start, end)
 		go hashTreesInSlice(trees[start:end], hashes[start:end], &wg, t)
 		start = end
 	}
