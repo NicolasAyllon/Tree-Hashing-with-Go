@@ -1,13 +1,20 @@
 import subprocess
 
 INPUTS =  [ 
-            "input/simple.txt"   #,
+          #  "input/simple.txt"   #,
           #  "input/coarse.txt"  #,
-          #  "input/fine.txt"  
+            "input/fine.txt"  
           ]
 
-# value -1 means to use N: the number of trees
-HASH_WORKERS = [1, 2, 4, 8, 16, -1] # values of i
+# values of i
+HASH_WORKERS = [
+                 1, 
+                 2, 
+                 4, 
+                 8, 
+                16, 
+                -1 # means N: the number of trees
+               ] 
 # DATA_WORKERS = [78]               # values of j
 # COMP_WORKERS = [66]
 

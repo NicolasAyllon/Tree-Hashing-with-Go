@@ -109,13 +109,19 @@ type HashBSTPair struct {
 	treeId int
 }
 
+// Each goroutine is responsible for a portion of the hashes slice and sends
+// (hash, Id) pairs to the main goroutine (mapHashesToTreeIdsParallel)
 func mapHashesToTreeIdsInSlice(hashes []int, ch chan HashBSTPair, wg *sync.WaitGroup) {
 	for id, hash := range hashes {
-		ch <- HashBSTPair{ hash: hash, treeId: id}
+		ch <- HashBSTPair{hash: hash, treeId: id}
 	}
 	wg.Done()
 }
 
+// Constructs a map from hash->BST Ids in parallel
+// The given number of threads/goroutines are spawned.
+// Each goroutine covers a portion of the hashes slice, and sends (hash, Id)
+// pairs to a central goroutine, which is this function.
 func mapHashesToTreeIdsParallel(hashes []int, threads int) map[int]*[]int {
 	hashToTreeIds := make(map[int]*[]int)
 	ch := make(chan HashBSTPair)
