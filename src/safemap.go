@@ -21,3 +21,55 @@ func (m singleLockMap) addToMap(hash int, treeId int) {
 	}
 	m.mutex.Unlock()
 }
+
+
+// Optional Implementation 1:
+// map where every slice is protected with a lock.
+// There is a map-wide lock for insertions.
+type fineLockMap struct {
+	hashToIds map[int]*safeSlice
+	mutex sync.Mutex
+}
+
+type safeSlice struct {
+	ids   []int
+	mutex sync.Mutex
+}
+
+// Return a new safeSlice containing only the given id.
+// Its mutex is auto-initialized to unlocked.
+func NewSafeSlice(id int) *safeSlice {
+	return &safeSlice{ids: []int{id}}
+}
+
+// Add to an existing key's slice value
+func (s *safeSlice) add(id int) {
+	s.mutex.Lock()
+	s.ids = append(s.ids, id)
+	s.mutex.Unlock()
+}
+
+// Insert a new key and corresponding 1-element slice
+func (m fineLockMap) insert(hash int, id int) {
+	// Lock entire map only for an insertion.
+	m.mutex.Lock()
+	// The hash was missing from the map (and is why insert was called)
+	// but check again here in case a thread added it since then.
+	_, isInMap := m.hashToIds[hash]
+	if !isInMap {
+		m.hashToIds[hash] = NewSafeSlice(id)
+	}
+	m.mutex.Unlock()
+}
+
+// Add a tree Id to the given hash's corresponding slice
+// If the hash is not in the map, a new entry and slice (with Id) is created.
+// If the hash already exists in the map, the Id is added to its slice.
+func (m fineLockMap) add(hash int, id int) {
+	ids, isInMap := m.hashToIds[hash]
+	if isInMap {
+		ids.add(id)
+	} else {
+		m.insert(hash, id)
+	}
+}
