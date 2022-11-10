@@ -111,9 +111,13 @@ type HashBSTPair struct {
 
 // Each goroutine is responsible for a portion of the hashes slice and sends
 // (hash, Id) pairs to the main goroutine (mapHashesToTreeIdsParallel)
-func mapHashesToIdsInSliceToChannel(hashes []int, ch chan HashBSTPair, wg *sync.WaitGroup) {
-	for id, hash := range hashes {
-		ch <- HashBSTPair{hash: hash, treeId: id}
+func mapHashesToIdsInSliceToChannel(hashes []int, start int, end int, ch chan HashBSTPair, wg *sync.WaitGroup) {
+	// for local_idx, hash := range hashes[start:end] {
+	// 	ch <- HashBSTPair{hash: hash, treeId: start + local_idx}
+	// }
+	fmt.Printf("goroutine for start = %v, end = %v\n", start, end)
+	for id := start; id < end; id++ {
+		ch <- HashBSTPair{hash: hashes[id], treeId: id}
 	}
 	wg.Done()
 }
@@ -138,13 +142,13 @@ func mapHashesToIdsParallelOneChannel(hashes []int, threads int) map[int]*[]int 
 	for t := 0; t < r; t++ {
 		start = end
 		end = start + (q + 1)
-		go mapHashesToIdsInSliceToChannel(hashes[start:end], ch, &wg)
+		go mapHashesToIdsInSliceToChannel(hashes, start, end, ch, &wg)
 	}
 	// Rest of threads process only q elements
 	for t := r; t < threads; t++ {
 		start = end
 		end = start + q
-		go mapHashesToIdsInSliceToChannel(hashes[start:end], ch, &wg)
+		go mapHashesToIdsInSliceToChannel(hashes, start, end, ch, &wg)
 	}
 	// Wait for all goroutines to finish and then close channel.
 	// https://stackoverflow.com/questions/21819622/
@@ -159,14 +163,17 @@ func mapHashesToIdsParallelOneChannel(hashes []int, threads int) map[int]*[]int 
 	return hashToTreeIds
 }
 
-
 // Each goroutine is responsible for a portion of the hashes slice and
 // updates the singleLockMap by itself.
 // [!] It seems that each goroutine is using the subslice index instead of the
 // [!] global slice index. For example, if sub := s[4:8], sub[1] = s[5].
-func mapHashesToIdsInSliceToLockedMap(hashes []int, s *singleLockMap, wg *sync.WaitGroup) {
-	for id, hash := range hashes {
-		s.addToMap(hash, id)
+// <!> Also fix with one-channel implementation
+func mapHashesToIdsInSliceToLockedMap(hashes []int, start int, end int, s *singleLockMap, wg *sync.WaitGroup) {
+	// for id, hash := range hashes {
+	// 	s.addToMap(hash, id)
+	// }
+	for id := start; id < end; id++ {
+		s.addToMap(hashes[id], id)
 	}
 	wg.Done()
 }
@@ -186,13 +193,13 @@ func mapHashesToIdsParallelLockedMap(hashes []int, threads int) map[int]*[]int {
 	for t := 0; t < r; t++ {
 		start = end
 		end = start + (q + 1)
-		go mapHashesToIdsInSliceToLockedMap(hashes[start:end], s, &wg)
+		go mapHashesToIdsInSliceToLockedMap(hashes, start, end, s, &wg)
 	}
 	// Rest of threads process only q elements
 	for t := r; t < threads; t++ {
 		start = end
 		end = start + q
-		go mapHashesToIdsInSliceToLockedMap(hashes[start:end], s, &wg)
+		go mapHashesToIdsInSliceToLockedMap(hashes, start, end, s, &wg)
 	}
 	// Wait for all goroutines to finish
 	wg.Wait()

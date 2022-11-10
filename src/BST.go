@@ -75,7 +75,8 @@ func main() {
 		fmt.Printf("hashes: %v\n", hashes)
 
 		start = time.Now()
-		mapHashToIds := mapHashesToIdsParallelOneChannel(hashes, *nDataWorkers)
+		// Threads/goroutines spawned will equal the number of hashWorkers
+		mapHashToIds := mapHashesToIdsParallelOneChannel(hashes, *nHashWorkers)
 		hashGroupTime = time.Since(start)
 		fmt.Printf("hashGroupTime = %v\n", hashGroupTime)
 		outputHashGroupsSorted(mapHashToIds)

@@ -41,3 +41,4 @@ for filename in INPUTS:
             "-data-workers={}".format(n_data_workers) ,
             "-comp-workers={}".format(n_comp_workers) ,
           ])
+      print

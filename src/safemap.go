@@ -15,8 +15,9 @@ func newSingleLockMap() *singleLockMap {
 	return &s
 }
 
+// [!] singleLockMap is passed by value, resulting in its mutex being copied
 // Lock the entire map for any change
-func (m singleLockMap) addToMap(hash int, treeId int) {
+func (m *singleLockMap) addToMap(hash int, treeId int) {
 	m.mutex.Lock()
 	ids, inMap := m.hashToIds[hash]
 	if inMap {
