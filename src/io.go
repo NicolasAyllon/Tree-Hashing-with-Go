@@ -54,9 +54,9 @@ func readTreesFromFile(filename string) []*Tree {
 	return trees
 }
 
-// print hashGroups, sorted by key
+// Print hashGroups, sorted by key
 func outputHashGroupsSorted(m map[int]*[]int) {
-	// Fill slice with keys and then sort it
+// Fill slice with keys and then sort it
 	keys := make([]int, len(m))
 	i := 0
 	for k := range m {
@@ -67,6 +67,8 @@ func outputHashGroupsSorted(m map[int]*[]int) {
 	// Iterate through sorted slice of keys and corresponding values from map
 	for _, hash := range keys {
 		ids := m[hash]
+		// Sort ids because they were added in random order in parallel
+		sort.Ints(*ids)
 		if len(*ids) > 1 {
 			fmt.Printf("%v: %s\n", hash, intsToString(*ids, " "))
 		}
@@ -89,7 +91,7 @@ func outputHashGroups(m map[int]*[]int) {
 func outputGroupsWithDuplicates(groups []Group) {
 	id_shown := 0
 	for _, group := range groups {
-		// But only print groups
+		// But only print groups with multiple Ids
 		if len(group.TreeIds) > 1 {
 			fmt.Printf("group %v: %s\n", id_shown, intsToString(group.TreeIds, " "))
 			id_shown++

@@ -112,9 +112,6 @@ type HashBSTPair struct {
 // Each goroutine is responsible for a portion of the hashes slice and sends
 // (hash, Id) pairs to the main goroutine (mapHashesToTreeIdsParallel)
 func mapHashesToIdsInSliceToChannel(hashes []int, start int, end int, ch chan HashBSTPair, wg *sync.WaitGroup) {
-	// for local_idx, hash := range hashes[start:end] {
-	// 	ch <- HashBSTPair{hash: hash, treeId: start + local_idx}
-	// }
 	fmt.Printf("goroutine for start = %v, end = %v\n", start, end)
 	for id := start; id < end; id++ {
 		ch <- HashBSTPair{hash: hashes[id], treeId: id}
@@ -165,13 +162,7 @@ func mapHashesToIdsParallelOneChannel(hashes []int, threads int) map[int]*[]int 
 
 // Each goroutine is responsible for a portion of the hashes slice and
 // updates the singleLockMap by itself.
-// [!] It seems that each goroutine is using the subslice index instead of the
-// [!] global slice index. For example, if sub := s[4:8], sub[1] = s[5].
-// <!> Also fix with one-channel implementation
 func mapHashesToIdsInSliceToLockedMap(hashes []int, start int, end int, s *singleLockMap, wg *sync.WaitGroup) {
-	// for id, hash := range hashes {
-	// 	s.addToMap(hash, id)
-	// }
 	for id := start; id < end; id++ {
 		s.addToMap(hashes[id], id)
 	}

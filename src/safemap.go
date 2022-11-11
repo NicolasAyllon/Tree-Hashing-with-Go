@@ -15,10 +15,10 @@ func newSingleLockMap() *singleLockMap {
 	return &s
 }
 
-// [!] singleLockMap is passed by value, resulting in its mutex being copied
 // Lock the entire map for any change
 func (m *singleLockMap) addToMap(hash int, treeId int) {
 	m.mutex.Lock()
+	defer m.mutex.Unlock()
 	ids, inMap := m.hashToIds[hash]
 	if inMap {
 		*ids = append(*ids, treeId)
@@ -26,7 +26,6 @@ func (m *singleLockMap) addToMap(hash int, treeId int) {
 		newListIds := []int{treeId}
 		m.hashToIds[hash] = &newListIds
 	}
-	m.mutex.Unlock()
 }
 
 // Optional Implementation 1:
@@ -52,14 +51,15 @@ func NewSafeSlice(id int) *safeSlice {
 // Add to an existing key's slice value
 func (s *safeSlice) add(id int) {
 	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	s.ids = append(s.ids, id)
-	s.mutex.Unlock()
 }
 
 // Insert a new key and corresponding 1-element slice
 func (m fineLockMap) insert(hash int, id int) {
 	// Lock entire map only for an insertion.
 	m.mutex.Lock()
+	defer m.mutex.Unlock()
 	// The hash was missing from the map (that's why insert(...) was called)
 	// but check again here in case a thread added it since then.
 	ids, inMap := m.hashToIds[hash]
@@ -69,7 +69,6 @@ func (m fineLockMap) insert(hash int, id int) {
 		// Another thread added the entry already, so add this tree Id to it.
 		ids.add(id)
 	}
-	m.mutex.Unlock()
 }
 
 // Add a tree Id to the given hash's corresponding slice
