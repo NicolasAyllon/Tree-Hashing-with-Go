@@ -4,15 +4,18 @@ import (
 	"sync"
 )
 
+// //////////////////////////////////////////////////////////////////////////////
 // Group holds tree Ids that have been compared and verified to be equivalent
 type Group struct {
 	// GroupId int
 	TreeIds []int
 }
+
 // Default constructor that returns a new empty Group by value
 func NewGroup() Group {
 	return Group{TreeIds: make([]int, 0)}
 }
+
 // Returns the first tree Id in the list, a representative for the group
 func (g Group) firstId() int {
 	if g.TreeIds == nil {
@@ -20,13 +23,14 @@ func (g Group) firstId() int {
 	}
 	return g.TreeIds[0]
 }
+
 // Convenience function for adding an Id to a group
 func (g *Group) add(id int) {
 	g.TreeIds = append(g.TreeIds, id)
 }
 
-
-// safeGroupList holds a slice of groups with a mutex for concurrent appends
+// //////////////////////////////////////////////////////////////////////////////
+// safeGroupList holds a slice of Groups with a mutex for concurrent appends
 type safeGroupList struct {
 	groups []Group
 	mutex  sync.Mutex
@@ -35,6 +39,7 @@ type safeGroupList struct {
 func NewSafeGroupList() safeGroupList {
 	return safeGroupList{groups: make([]Group, 0)}
 }
+
 // Append a slice of groups to safeGroupList
 func (s *safeGroupList) add(others []Group) {
 	s.mutex.Lock()
@@ -48,10 +53,6 @@ func (s *safeGroupList) add(others []Group) {
 	// }
 	s.groups = append(s.groups, others...)
 }
-
-// [?] I think this works, but if there are problems consider using pointer:
-// treeIds := &g.TreeIds;
-// *treeIds = append(*treeIds, id)
 
 // Tries to find a match in groups for given Id.
 // If a match is found, the Id is inserted into that group and true is returned
@@ -70,7 +71,7 @@ func insertInExistingGroups(id int, groups *[]Group, trees []*Tree) {
 	}
 	// No match found, create new group for this tree and add to groups
 	// Access through pointer to pick up changes to slice on reallocation
-	newGroup := Group{[]int{id}}
+	newGroup := Group{TreeIds: []int{id}}
 	*groups = append(*groups, newGroup)
 }
 
@@ -96,31 +97,39 @@ func compareTreesAndGroup(trees []*Tree, mapHashToIds map[int]*[]int) []Group {
 	return allGroups
 }
 
-// TODO
-// // Spawn one goroutine to process duplicatfor each hash value in map
-// func compareTreesAndGroupParallel(mapHashToIds map[int]*[]int) []Group {
-// 	s := NewSafeGroupList()
-// 	// Add the number of hashes, H, to the waitgroup
-// 	var wg sync.WaitGroup
-// 	wg.Add(len(mapHashToIds))
-// 	i := 0 // Starting group id, increment as groups are added
-// 	for _, ids := range mapHashToIds {
-// 		go compareAndInsert(ids, &allGroups, &wg)
-// 		// Track groups for trees with this hash, possible all ids are unique
-// 		currentGroups := make([]Group, 0) // make([]Group, 0, len(*ids))
-// 		// For ids with this hash
-// 		for _, id := range *ids {
-// 			// Try to find a matching group and insert if found (return true)
-// 			match := insertInExistingGroups(id, currentGroups, trees)
-// 			// Otherwise match = false, so create a new group for this Id and append
-// 			if !match {
-// 				newGroup := Group{i, []int{id}}
-// 				i++
-// 				currentGroups = append(currentGroups, newGroup)
-// 			}
-// 		}
-// 		// Append the groups for this hash to allGroups
-// 		allGroups = append(allGroups, currentGroups...)
-// 	}
-// 	return allGroups
-// }
+func compareTreesWithHash(ids *[]int, trees []*Tree, s *safeGroupList, wg *sync.WaitGroup) {
+	currentGroups := make([]Group, 0)
+	for _, id := range *ids {
+		match := false
+		for i := range currentGroups {
+			group := &currentGroups[i]
+			groupRepTree := trees[group.TreeIds[0]]
+			if trees[id].isEquivalentTo(groupRepTree) {
+				group.add(id)
+				match = true
+				break
+			}
+		}
+		if !match {
+			newGroup := Group{TreeIds: []int{id}}
+			currentGroups = append(currentGroups, newGroup)
+		}
+	}
+	// Add to safeGroupList
+	s.add(currentGroups)
+	wg.Done()
+}
+
+// Spawn one goroutine to process duplicates for each hash value in map
+func compareTreesAndGroupParallel(trees []*Tree, mapHashToIds map[int]*[]int) []Group {
+	s := NewSafeGroupList()
+	H := len(mapHashToIds) // number of unique hashes
+
+	var wg sync.WaitGroup
+	wg.Add(H)
+	for _, ids := range mapHashToIds {
+		go compareTreesWithHash(ids, trees, &s, &wg)
+	}
+	wg.Wait()
+	return s.groups
+}
