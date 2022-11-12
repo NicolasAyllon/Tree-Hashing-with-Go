@@ -128,10 +128,18 @@ func main() {
 
 	// 2: -comp-workers>1
 	// Parallel implementation
+	// Note: Rather than using a goroutine to compare pairs of trees (a, b), use
+	// each goroutine to process possible duplicates for 1 hash. This works best
+	// when the trees are mapped evenly to different hash values.
 	if *nCompWorkers > 1 {
-		// uniqueGroups = compareTreesAndGroupParallel
+		// For cmdline argument -comp-workers=-1, use number of hashes in map, H
+		if *nCompWorkers == -1 {
+			*nCompWorkers = len(mapHashToIds) // = H
+			fmt.Printf("nCompWorkers set to H = %v\n", *nCompWorkers)
+		}
+		// TODO:
+		// uniqueGroups = compareTreesAndGroupParallel(mapHashToIds, *nCompWorkers)
 	}
 	return // TODO: testing, remove later
-
 
 }

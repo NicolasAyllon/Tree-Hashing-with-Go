@@ -9,7 +9,7 @@ type singleLockMap struct {
 	mutex     sync.Mutex
 }
 
-func newSingleLockMap() *singleLockMap {
+func NewSingleLockMap() *singleLockMap {
 	s := singleLockMap{hashToIds: make(map[int]*[]int)}
 	// mutex has default zero-value (unlocked)
 	return &s

@@ -170,7 +170,7 @@ func mapHashesToIdsInSliceToLockedMap(hashes []int, start int, end int, s *singl
 }
 
 func mapHashesToIdsParallelLockedMap(hashes []int, threads int) map[int]*[]int {
-	s := newSingleLockMap()
+	s := NewSingleLockMap()
 
 	N := len(hashes)
 	q := N / threads // quotient
