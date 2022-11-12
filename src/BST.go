@@ -133,11 +133,13 @@ func main() {
 
 	// For cmdline argument -comp-workers=-1, use number of hashes in map, H
 	if *nCompWorkers == -1 {
+		H := len(mapHashToIds)
+		fmt.Printf("Using 1 goroutine per hashGroup (%v total)\n", H)
 		uniqueGroups = compareTreesAndGroupParallel(trees, mapHashToIds)
 		outputGroupsWithDuplicatesSorted(uniqueGroups)
 	}
-	
-	// Spawn -comp-workers threads to do the comparisons and use a 
+
+	// Spawn -comp-workers threads to do the comparisons and use a
 	// concurrent buffer to communicate with them.
 	if *nCompWorkers > 1 {
 		// TODO:
