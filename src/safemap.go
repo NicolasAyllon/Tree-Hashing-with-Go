@@ -56,7 +56,7 @@ func (s *safeSlice) add(id int) {
 }
 
 // Insert a new key and corresponding 1-element slice
-func (m fineLockMap) insert(hash int, id int) {
+func (m *fineLockMap) insert(hash int, id int) {
 	// Lock entire map only for an insertion.
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
@@ -74,7 +74,7 @@ func (m fineLockMap) insert(hash int, id int) {
 // Add a tree Id to the given hash's corresponding slice
 // If the hash is not in the map, a new entry and slice (with Id) is created.
 // If the hash already exists in the map, the Id is added to its slice.
-func (m fineLockMap) add(hash int, id int) {
+func (m *fineLockMap) add(hash int, id int) {
 	ids, inMap := m.hashToIds[hash]
 	if inMap {
 		ids.add(id)
