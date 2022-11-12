@@ -112,7 +112,7 @@ type HashBSTPair struct {
 // Each goroutine is responsible for a portion of the hashes slice and sends
 // (hash, Id) pairs to the main goroutine (mapHashesToTreeIdsParallel)
 func mapHashesToIdsInSliceToChannel(hashes []int, start int, end int, ch chan HashBSTPair, wg *sync.WaitGroup) {
-	fmt.Printf("goroutine for start = %v, end = %v\n", start, end)
+	// fmt.Printf("goroutine for start = %v, end = %v\n", start, end)
 	for id := start; id < end; id++ {
 		ch <- HashBSTPair{hash: hashes[id], treeId: id}
 	}

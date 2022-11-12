@@ -1,8 +1,8 @@
 import subprocess
 
 INPUTS =  [ 
-            "input/simple.txt"   #,
-          #  "input/coarse.txt"  #,
+          #  "input/simple.txt"   #,
+            "input/coarse.txt"  #,
           #  "input/fine.txt"  
           ]
 
@@ -26,7 +26,7 @@ DATA_WORKERS = [
                 # -1 # means N: the number of trees
                ]
 
-THREAD_VALUES = {
+HASH_WORKERS_TO_DATA_WORKERS = {
 #  i : possible values of j
 # hash-workers : [data-workers]
    1: [1],
@@ -37,7 +37,8 @@ THREAD_VALUES = {
   -1: [1, -1]
 }
 
-n_comp_workers = 66
+n_comp_workers = 1
+# COMP_WORKERS = [1, 2, 4, 8, 16]
 
 ITERATIONS = 1
 
@@ -55,8 +56,8 @@ ITERATIONS = 1
 #       print
 
 for filename in INPUTS:
-  for n_hash_workers in THREAD_VALUES.keys():
-    for n_data_workers in THREAD_VALUES[n_hash_workers]:
+  for n_hash_workers in HASH_WORKERS_TO_DATA_WORKERS.keys():
+    for n_data_workers in HASH_WORKERS_TO_DATA_WORKERS[n_hash_workers]:
       for i in range(ITERATIONS):
           subprocess.call([
             "./BST",

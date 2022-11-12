@@ -24,10 +24,7 @@ func main() {
 	inputFile := flag.String("input", "", "input filename containing BSTs")
 	flag.Parse()
 	// Use all the variables!
-	_ = nHashWorkers
-	_ = nDataWorkers
-	_ = nCompWorkers
-	_ = inputFile
+	_, _, _, _ = nHashWorkers, nDataWorkers, nCompWorkers, inputFile
 	// Testing
 	fmt.Printf("%v: hash-workers = %v, data-workers = %v\n", *inputFile, *nHashWorkers, *nDataWorkers)
 
@@ -38,14 +35,19 @@ func main() {
 		*nHashWorkers = len(trees)
 		fmt.Printf("nHashWorkers set to N = %v\n", *nHashWorkers)
 	}
+	// For cmdline argument -data-workers=-1, use the number of trees N
 	if *nDataWorkers == -1 {
 		*nDataWorkers = len(trees)
 		fmt.Printf("nDataWorkers set to N = %v\n", *nDataWorkers)
 	}
 
-
-	// Calculate hashes
+	//////////////////////////////////////////////////////////////////////////////
+	//   Step 1. Calculate hashes
+	// & Step 2. Map hashes to tree IDs
+	//////////////////////////////////////////////////////////////////////////////
 	var hashes []int
+	var mapHashToIds map[int]*[]int
+	var uniqueGroups []Group
 
 	// 1: -hash-workers=1 -data-workers=1
 	// Sequential implementation
@@ -55,10 +57,10 @@ func main() {
 		hashes = hashTrees(trees)
 		hashTime = time.Since(start)
 		fmt.Printf("hashTime = %v\n", hashTime)
-		fmt.Printf("hashes: %v\n", hashes)
+		// fmt.Printf("hashes: %v\n", hashes)
 
 		start = time.Now()
-		mapHashToIds := mapHashesToIds(hashes)
+		mapHashToIds = mapHashesToIds(hashes)
 		hashGroupTime = time.Since(start)
 		fmt.Printf("hashGroupTime = %v\n", hashGroupTime)
 		outputHashGroupsSorted(mapHashToIds)
@@ -74,11 +76,11 @@ func main() {
 		hashes = hashTreesParallel(trees, *nHashWorkers)
 		hashTime = time.Since(start)
 		fmt.Printf("hashTime = %v\n", hashTime)
-		fmt.Printf("hashes: %v\n", hashes)
+		// fmt.Printf("hashes: %v\n", hashes)
 
 		start = time.Now()
 		// Threads/goroutines spawned will equal the number of hashWorkers
-		mapHashToIds := mapHashesToIdsParallelOneChannel(hashes, *nHashWorkers)
+		mapHashToIds = mapHashesToIdsParallelOneChannel(hashes, *nHashWorkers)
 		hashGroupTime = time.Since(start)
 		fmt.Printf("hashGroupTime = %v\n", hashGroupTime)
 		outputHashGroupsSorted(mapHashToIds)
@@ -94,9 +96,9 @@ func main() {
 		hashes = hashTreesParallel(trees, *nHashWorkers)
 		hashTime = time.Since(start)
 		fmt.Printf("hashTime = %v\n", hashTime)
-		fmt.Printf("hashes: %v\n", hashes)
+		// fmt.Printf("hashes: %v\n", hashes)
 
-		mapHashToIds := mapHashesToIdsParallelLockedMap(hashes, *nDataWorkers)
+		mapHashToIds = mapHashesToIdsParallelLockedMap(hashes, *nDataWorkers)
 		hashGroupTime = time.Since(start)
 		fmt.Printf("hashGroupTime = %v\n", hashGroupTime)
 		outputHashGroupsSorted(mapHashToIds)
@@ -106,26 +108,30 @@ func main() {
 	// This implementation spawns i goroutines to compute the hashes of the
 	// input BSTs. Then j goroutines are spawned to update the map.
 	if *nHashWorkers > 1 && *nDataWorkers > 1 && *nHashWorkers > *nDataWorkers {
-
+		// ...
 	}
 
+	//////////////////////////////////////////////////////////////////////////////
+	// Step 3. Tree Comparisons
+	//////////////////////////////////////////////////////////////////////////////
+
+	// 1: -comp-workers=1
+	// Sequential implementation
+	if *nCompWorkers == 1 {
+		start := time.Now()
+		uniqueGroups = compareTreesAndGroup(trees, mapHashToIds)
+		compareTreeTime = time.Since(start)
+		fmt.Printf("compareTreeTime = %v\n", compareTreeTime)
+		// printAllGroups(uniqueGroups)
+		outputGroupsWithDuplicatesSorted(uniqueGroups)
+	}
+
+	// 2: -comp-workers>1
+	// Parallel implementation
+	if *nCompWorkers > 1 {
+		// uniqueGroups = compareTreesAndGroupParallel
+	}
 	return // TODO: testing, remove later
 
-	// Group hashes
-	start := time.Now()
-	mapHashToIds := mapHashesToIds(hashes)
-	hashGroupTime = time.Since(start)
-	fmt.Printf("hashGroupTime = %v\n", hashGroupTime)
-	// printHashGroups(mapHashToIds)
-	outputHashGroupsSorted(mapHashToIds)
-
-	// Compare possible duplicate trees with the same hash
-	// and put identical trees in Groups
-	start = time.Now()
-	uniqueGroups := compareTreesAndGroup(trees, mapHashToIds)
-	compareTreeTime = time.Since(start)
-	fmt.Printf("compareTreeTime = %v\n", compareTreeTime)
-	// printAllGroups(uniqueGroups)
-	outputGroupsWithDuplicatesSorted(uniqueGroups)
 
 }
