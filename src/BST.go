@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+// Testing
+const testOpt_showHashGroupsOutput = false
+const testOpt_showCompOutput = false
+
 func main() {
 
 	// Declare flags (pointers), default values, and then parse
@@ -91,7 +95,9 @@ func main() {
 	// Output for Steps 1 & 2:
 	fmt.Printf("hashTime = %v\n", hashTime)
 	fmt.Printf("hashGroupTime = %v\n", hashGroupTime)
-	outputHashGroupsSorted(mapHashToIds)
+	if testOpt_showHashGroupsOutput {
+		outputHashGroupsSorted(mapHashToIds)
+	}
 
 	// OPTIONAL:
 	// This implementation spawns i goroutines to compute the hashes of the
@@ -138,8 +144,6 @@ func main() {
 		start := time.Now()
 		uniqueGroups = compareTreesAndGroupParallel(trees, mapHashToIds)
 		compareTreeTime = time.Since(start)
-		fmt.Printf("compareTreeTime = %v\n", compareTreeTime)
-		outputGroupsWithDuplicatesSorted(uniqueGroups)
 	}
 
 	// Concurrent Buffer:
@@ -152,7 +156,7 @@ func main() {
 		compareTreeTime = time.Since(start)
 	}
 
-	if showCompOutput {
+	if showCompOutput && testOpt_showCompOutput {
 		fmt.Printf("compareTreeTime = %v\n", compareTreeTime)
 		outputGroupsWithDuplicatesSorted(uniqueGroups)
 	}

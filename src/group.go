@@ -1,6 +1,7 @@
 package main
 
 import (
+	// "fmt"
 	"sync"
 )
 
@@ -125,17 +126,16 @@ func compareTreesAndGroupParallel(trees []*Tree, mapHashToIds map[int]*[]int) []
 // it calls Done() on the WaitGroup and returns.
 func compareTreesWithHashBuffered(trees []*Tree, mapHashToIds map[int]*[]int, s *safeGroupList, buffer *concurrentBuffer, wg *sync.WaitGroup, threadId int) {
 	// Pop values forever
+	defer wg.Done()
 	for {
 		// Pop value from buffer and assert buffer item interface{} is int
 		hash := buffer.pop().(int)
 		// -1 means no more values, so return
 		if hash == -1 {
 			// fmt.Printf("Goroutine %v assigned hash -1, returning...\n", threadId)
-			wg.Done()
 			return
 		}
-		//     fmt.Printf("Goroutine %v assigned hash %v\n", threadId, hash)
-		// Process trees with given hash and add unique groups to
+		// fmt.Printf("Goroutine %v assigned hash %v\n", threadId, hash)
 		// Compare trees with this hash, make groups, and append to safeGroupList
 		currentGroups := make([]Group, 0)
 		for _, id := range *mapHashToIds[hash] {
