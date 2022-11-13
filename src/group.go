@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -131,12 +130,12 @@ func compareTreesWithHashBuffered(trees []*Tree, mapHashToIds map[int]*[]int, s 
 		hash := buffer.pop().(int)
 		// -1 means no more values, so return
 		if hash == -1 {
-			fmt.Printf("Goroutine %v assigned hash -1, returning...\n", threadId)
+			// fmt.Printf("Goroutine %v assigned hash -1, returning...\n", threadId)
 			wg.Done()
 			return
 		}
+		//     fmt.Printf("Goroutine %v assigned hash %v\n", threadId, hash)
 		// Process trees with given hash and add unique groups to
-		fmt.Printf("Goroutine %v assigned hash %v\n", threadId, hash)
 		// Compare trees with this hash, make groups, and append to safeGroupList
 		currentGroups := make([]Group, 0)
 		for _, id := range *mapHashToIds[hash] {
