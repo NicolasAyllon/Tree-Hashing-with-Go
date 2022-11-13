@@ -118,10 +118,16 @@ func compareTreesAndGroupParallel(trees []*Tree, mapHashToIds map[int]*[]int) []
 	return s.groups
 }
 
+// Each comp-worker goroutine pops a hash from the concurrent buffer.
+// It processes the possible duplicate trees with the same hash and appends the
+// groups to the safeGroupList.
+//
+// When the goroutine receives -1 from the buffer (an indicator to stop),
+// it calls Done() on the WaitGroup and returns.
 func compareTreesWithHashBuffered(trees []*Tree, mapHashToIds map[int]*[]int, s *safeGroupList, buffer *concurrentBuffer, wg *sync.WaitGroup, threadId int) {
 	// Pop values forever
 	for {
-		// Pop value from buffer and assert item interface{} is int
+		// Pop value from buffer and assert buffer item interface{} is int
 		hash := buffer.pop().(int)
 		// -1 means no more values, so return
 		if hash == -1 {
