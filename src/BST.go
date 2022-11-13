@@ -1,14 +1,8 @@
 package main
 
 import (
-	// "bufio"
 	"flag"
 	"fmt"
-
-	// "os"
-	// "strconv"
-	// "strings"
-	// "sync"
 	"time"
 )
 
