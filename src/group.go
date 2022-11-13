@@ -131,7 +131,7 @@ func compareTreesWithHashBuffered(trees []*Tree, mapHashToIds map[int]*[]int, s 
 		hash := buffer.pop().(int)
 		// -1 means no more values, so return
 		if hash == -1 {
-			fmt.Printf("Goroutine %v assigned hash -1, returning...", threadId)
+			fmt.Printf("Goroutine %v assigned hash -1, returning...\n", threadId)
 			wg.Done()
 			return
 		}

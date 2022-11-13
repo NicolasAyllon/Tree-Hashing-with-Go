@@ -25,8 +25,7 @@ func main() {
 	flag.Parse()
 	// Use all the variables!
 	_, _, _, _ = nHashWorkers, nDataWorkers, nCompWorkers, inputFile
-	// Testing
-	fmt.Printf("%v: hash-workers = %v, data-workers = %v\n", *inputFile, *nHashWorkers, *nDataWorkers)
+	fmt.Printf("%v: hash-workers = %v, data-workers = %v, comp-workers = %v\n", *inputFile, *nHashWorkers, *nDataWorkers, *nCompWorkers)
 
 	// Read trees from file into slice
 	var trees []*Tree = readTreesFromFile(*inputFile)
@@ -131,20 +130,27 @@ func main() {
 	// Rather than using a goroutines to compare one pair of trees (a, b), use
 	// each goroutine to process one hash and the possible duplicate trees.
 
+	// First implementation:
+	// Goroutine for each hash group
 	// For cmdline argument -comp-workers=-1, use number of hashes in map, H
 	if *nCompWorkers == -1 {
 		H := len(mapHashToIds)
 		fmt.Printf("Using 1 goroutine per hashGroup (%v total)\n", H)
+		start := time.Now()
 		uniqueGroups = compareTreesAndGroupParallel(trees, mapHashToIds)
+		compareTreeTime = time.Since(start)
 		outputGroupsWithDuplicatesSorted(uniqueGroups)
 	}
 
+	// Concurrent Buffer:
+	// Goroutines get items from fixed-size buffer
 	// Spawn -comp-workers threads to do the comparisons and use a
 	// concurrent buffer to communicate with them.
 	if *nCompWorkers > 1 {
-		// TODO:
 		fmt.Printf("Using %v goroutines with concurrent buffer\n", *nCompWorkers)
+		start := time.Now()
 		uniqueGroups = compareTreesAndGroupParallelBuffered(trees, mapHashToIds, *nCompWorkers)
+		compareTreeTime = time.Since(start)
 		outputGroupsWithDuplicatesSorted(uniqueGroups)
 	}
 }

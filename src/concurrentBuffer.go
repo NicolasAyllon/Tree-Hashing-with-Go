@@ -17,7 +17,7 @@ type concurrentBuffer struct {
 
 func NewConcurrentBuffer(capacity int) *concurrentBuffer {
 	return &concurrentBuffer{
-		items:    make([]interface{}, 0, capacity),
+		items:    make([]interface{}, capacity),
 		hasItems: sync.NewCond(&sync.Mutex{}),
 		hasSpace: sync.NewCond(&sync.Mutex{}),
 		pushIdx:  0,
