@@ -143,5 +143,8 @@ func main() {
 	// concurrent buffer to communicate with them.
 	if *nCompWorkers > 1 {
 		// TODO:
+		fmt.Printf("Using %v goroutines with concurrent buffer\n", *nCompWorkers)
+		uniqueGroups = compareTreesAndGroupParallelBuffered(trees, mapHashToIds, *nCompWorkers)
+		outputGroupsWithDuplicatesSorted(uniqueGroups)
 	}
 }

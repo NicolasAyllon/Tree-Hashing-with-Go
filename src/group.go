@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 )
 
-// //////////////////////////////////////////////////////////////////////////////
 // Group holds tree Ids that have been compared and verified to be equivalent
 type Group struct {
 	// GroupId int
@@ -16,20 +16,11 @@ func NewGroup() Group {
 	return Group{TreeIds: make([]int, 0)}
 }
 
-// Returns the first tree Id in the list, a representative for the group
-func (g Group) firstId() int {
-	if g.TreeIds == nil {
-		return -1
-	}
-	return g.TreeIds[0]
-}
-
 // Convenience function for adding an Id to a group
 func (g *Group) add(id int) {
 	g.TreeIds = append(g.TreeIds, id)
 }
 
-// //////////////////////////////////////////////////////////////////////////////
 // safeGroupList holds a slice of Groups with a mutex for concurrent appends
 type safeGroupList struct {
 	groups []Group
@@ -44,13 +35,6 @@ func NewSafeGroupList() safeGroupList {
 func (s *safeGroupList) add(others []Group) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	// Convert local GroupId to global when appended:
-	//   global                   + local
-	//   (0, 1, 2, 3, ..., len-1) + (0, 1, 2)
-	// = (0, 1, 2, 3, ..., len-1,   len+0, len+1, len+2)
-	// for _, group := range groups {
-	// 	group.GroupId += len(s.Groups)
-	// }
 	s.groups = append(s.groups, others...)
 }
 
@@ -120,7 +104,7 @@ func compareTreesWithHash(ids *[]int, trees []*Tree, s *safeGroupList, wg *sync.
 	wg.Done()
 }
 
-// Spawn one goroutine to process duplicates for each hash value in map
+// Spawn H goroutines to process duplicates for all H hash values in map
 func compareTreesAndGroupParallel(trees []*Tree, mapHashToIds map[int]*[]int) []Group {
 	s := NewSafeGroupList()
 	H := len(mapHashToIds) // number of unique hashes
@@ -129,6 +113,66 @@ func compareTreesAndGroupParallel(trees []*Tree, mapHashToIds map[int]*[]int) []
 	wg.Add(H)
 	for _, ids := range mapHashToIds {
 		go compareTreesWithHash(ids, trees, &s, &wg)
+	}
+	wg.Wait()
+	return s.groups
+}
+
+func compareTreesWithHashBuffered(trees []*Tree, mapHashToIds map[int]*[]int, s *safeGroupList, buffer *concurrentBuffer, wg *sync.WaitGroup, threadId int) {
+	// Pop values forever
+	for {
+		// Pop value from buffer and assert item interface{} is int
+		hash := buffer.pop().(int)
+		// -1 means no more values, so return
+		if hash == -1 {
+			fmt.Printf("Goroutine %v assigned hash -1, returning...", threadId)
+			wg.Done()
+			return
+		}
+		// Process trees with given hash and add unique groups to
+		fmt.Printf("Goroutine %v assigned hash %v\n", threadId, hash)
+		// Compare trees with this hash, make groups, and append to safeGroupList
+		currentGroups := make([]Group, 0)
+		for _, id := range *mapHashToIds[hash] {
+			match := false
+			for i := range currentGroups {
+				group := &currentGroups[i]
+				groupRepTree := trees[group.TreeIds[0]]
+				if trees[id].isEquivalentTo(groupRepTree) {
+					group.add(id)
+					match = true
+					break
+				}
+			}
+			if !match {
+				newGroup := Group{TreeIds: []int{id}}
+				currentGroups = append(currentGroups, newGroup)
+			}
+		}
+		// Add processed groups to safeGroupList
+		s.add(currentGroups)
+	}
+}
+
+// Spawn the given number of goroutines to compare and group duplicates.
+// Uses a custom concurrent buffer to distribute hash->(treeIds) to process.
+func compareTreesAndGroupParallelBuffered(trees []*Tree, mapHashToIds map[int]*[]int, threads int) []Group {
+	s := NewSafeGroupList()
+	buffer := NewConcurrentBuffer(threads)
+	// Wait for all goroutines to return
+	var wg sync.WaitGroup
+	wg.Add(threads)
+	// Consumers
+	for t := 0; t < threads; t++ {
+		go compareTreesWithHashBuffered(trees, mapHashToIds, &s, buffer, &wg, t)
+	}
+	// Producer: add hashes to the buffer
+	for hash := range mapHashToIds {
+		buffer.push(hash)
+	}
+	// Producer: push -1 to indicate tell receiving goroutine that it can return
+	for t := 0; t < threads; t++ {
+		buffer.push(-1)
 	}
 	wg.Wait()
 	return s.groups
