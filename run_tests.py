@@ -2,37 +2,37 @@ import subprocess
 
 INPUTS =  [ 
           #  "input/simple.txt"   #,
-            "input/coarse.txt"  #,
-          #  "input/fine.txt"  
+          #  "input/coarse.txt"  #,
+            "input/fine.txt"  
           ]
 # values of i
 HASH_WORKERS = [
-                #  1, 
+                 1, 
                 #  2, 
                 #  4, 
                 #  8, 
-                 16, 
+                #  16, 
                 # -1 # means N: the number of trees
                ] 
 # values of j
 DATA_WORKERS = {
 #  i : possible values of j
 # hash-workers : [data-workers]
-    # 1: [1],
+    1: [1],
     # 2: [1, 2],
     # 4: [1, 4],
     # 8: [1, 8],
-   16: [1, 16],
+  #  16: [1, 16],
   #  -1: [1, -1]
 }
 COMP_WORKERS = [
-                # 1, 
-                # 2, 
-                # 4, 
-                # 8, 
+                1, 
+                2, 
+                4, 
+                8, 
                 16
                ]
-ITERATIONS = 5
+ITERATIONS = 1
 
 # for filename in INPUTS:
 #   for n_hash_workers in HASH_WORKERS:

@@ -9,6 +9,7 @@ import (
 // Testing
 const testOpt_showHashGroupsOutput = false
 const testOpt_showCompOutput = false
+const testOpt_showCompTime = true
 
 func main() {
 
@@ -56,7 +57,7 @@ func main() {
 		hashes = hashTrees(trees)
 		hashTime = time.Since(start)
 		// Hash Groups
-		start = time.Now()
+		// start = time.Now()
 		mapHashToIds = mapHashesToIds(hashes)
 		hashGroupTime = time.Since(start)
 	}
@@ -72,7 +73,7 @@ func main() {
 		hashes = hashTreesParallel(trees, *nHashWorkers)
 		hashTime = time.Since(start)
 		// Hash Groups
-		start = time.Now()
+		// start = time.Now()
 		mapHashToIds = mapHashesToIdsParallelOneChannel(hashes, *nHashWorkers)
 		hashGroupTime = time.Since(start)
 	}
@@ -125,9 +126,6 @@ func main() {
 		start := time.Now()
 		uniqueGroups = compareTreesAndGroup(trees, mapHashToIds)
 		compareTreeTime = time.Since(start)
-
-		fmt.Printf("compareTreeTime = %v\n", compareTreeTime)
-		outputGroupsWithDuplicatesSorted(uniqueGroups)
 	}
 
 	// 2:
@@ -159,5 +157,7 @@ func main() {
 	if showCompOutput && testOpt_showCompOutput {
 		fmt.Printf("compareTreeTime = %v\n", compareTreeTime)
 		outputGroupsWithDuplicatesSorted(uniqueGroups)
+	} else if testOpt_showCompTime{
+		fmt.Printf("compareTreeTime = %v\n", compareTreeTime)
 	}
 }
