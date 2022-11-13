@@ -7,29 +7,29 @@ INPUTS =  [
           ]
 # values of i
 HASH_WORKERS = [
-                 1, 
-                 2, 
-                 4, 
-                 8, 
+                #  1, 
+                #  2, 
+                #  4, 
+                #  8, 
                  16, 
-                -1 # means N: the number of trees
+                # -1 # means N: the number of trees
                ] 
 # values of j
 DATA_WORKERS = {
 #  i : possible values of j
 # hash-workers : [data-workers]
-    1: [1],
-    2: [1, 2],
-    4: [1, 4],
-    8: [1, 8],
-   16: [1, 16],
-   -1: [1, -1]
+    # 1: [1],
+    # 2: [1, 2],
+    # 4: [1, 4],
+    # 8: [1, 8],
+   16: [16],
+  #  -1: [1, -1]
 }
 COMP_WORKERS = [
                 # 1, 
                 # 2, 
                 # 4, 
-                8, 
+                # 8, 
                 16
                ]
 ITERATIONS = 1

@@ -7,8 +7,8 @@ import (
 )
 
 // Testing
-const testOpt_showHashGroupsOutput = false
-const testOpt_showCompOutput = false
+const testOpt_showHashGroupsOutput = true
+const testOpt_showCompOutput = true
 const testOpt_showCompTime = true
 
 func main() {
@@ -44,11 +44,6 @@ func main() {
 	var start time.Time
 	var hashTime, hashGroupTime, compareTreeTime time.Duration
 
-	// TODO:
-	// <!> When -hash-workers is the only flag provided, your program should
-	// <!> only compute the hash of each BST without performing the other 2 steps
-
-	// [?] New version (split steps 1 and 2)
 	//////////////////////////////////////////////////////////////////////////////
 	//   Step 1. Calculate hashes
 	//////////////////////////////////////////////////////////////////////////////
