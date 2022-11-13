@@ -38,7 +38,6 @@ func (b *concurrentBuffer) push(item interface{}) {
 	b.pushIdx = (b.pushIdx + 1) % b.size
 	b.count++
 	b.hasItems.Signal()
-	//[!] 2. push(-1): Signal() is called before
 	b.hasSpace.L.Unlock()
 }
 
@@ -46,7 +45,7 @@ func (b *concurrentBuffer) pop() interface{} {
 	// If empty, wait
 	b.hasItems.L.Lock()
 	for b.count == 0 {
-		b.hasItems.Wait() // [!] 1. wait on last item
+		b.hasItems.Wait()
 	}
 	// When there's an item, take it
 	item := b.items[b.popIdx]

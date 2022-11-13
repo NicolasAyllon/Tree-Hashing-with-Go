@@ -48,6 +48,10 @@ func main() {
 	// & Step 2. Map hashes to tree IDs
 	//////////////////////////////////////////////////////////////////////////////
 
+	// TODO:
+	// <!> When -hash-workers is the only flag provided, your program should 
+	// <!> only compute the hash of each BST without performing the other 2 steps
+
 	// 1: -hash-workers=1 -data-workers=1
 	// Sequential implementation
 	if *nHashWorkers == 1 && *nDataWorkers == 1 {
@@ -155,7 +159,7 @@ func main() {
 	if showCompOutput && testOpt_showCompOutput {
 		fmt.Printf("compareTreeTime = %v\n", compareTreeTime)
 		outputGroupsWithDuplicatesSorted(uniqueGroups)
-	} else if testOpt_showCompTime{
+	} else if testOpt_showCompTime {
 		fmt.Printf("compareTreeTime = %v\n", compareTreeTime)
 	}
 }
