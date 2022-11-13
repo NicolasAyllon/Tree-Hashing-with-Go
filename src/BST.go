@@ -41,72 +41,88 @@ func main() {
 	var mapHashToIds map[int]*[]int
 	var uniqueGroups []Group
 	// Timers
+	var start time.Time
 	var hashTime, hashGroupTime, compareTreeTime time.Duration
 
-	//////////////////////////////////////////////////////////////////////////////
-	//   Step 1. Calculate hashes
-	// & Step 2. Map hashes to tree IDs
-	//////////////////////////////////////////////////////////////////////////////
-
 	// TODO:
-	// <!> When -hash-workers is the only flag provided, your program should 
+	// <!> When -hash-workers is the only flag provided, your program should
 	// <!> only compute the hash of each BST without performing the other 2 steps
 
-	// 1: -hash-workers=1 -data-workers=1
-	// Sequential implementation
-	if *nHashWorkers == 1 && *nDataWorkers == 1 {
-		// Hash
-		fmt.Println("Running implementation 1: sequential...")
-		start := time.Now()
+	// [?] New version (split steps 1 and 2)
+	//////////////////////////////////////////////////////////////////////////////
+	//   Step 1. Calculate hashes
+	//////////////////////////////////////////////////////////////////////////////
+
+	// 1. Sequential
+	if *nHashWorkers == 1 {
+		fmt.Println("Hashing trees sequentially...")
+		start = time.Now()
 		hashes = hashTrees(trees)
 		hashTime = time.Since(start)
-		// Hash Groups
+	}
+
+	// 2. Parallel
+	if *nHashWorkers > 1 {
+		fmt.Printf("Hashing trees in parallel (%v goroutines)\n", *nHashWorkers)
+		start = time.Now()
+		hashes = hashTreesParallel(trees, *nHashWorkers)
+		hashTime = time.Since(start)
+	}
+
+	// Output hash time
+	fmt.Printf("hashTime = %v\n", hashTime)
+
+	// Continue?
+	// If -hash-workers is the only flag provided, only compute the hash
+	// of each BST without performing the other 2 steps (flags still default 0)
+	if *nDataWorkers == 0 && *nCompWorkers == 0 {
+		return
+	}
+
+	//////////////////////////////////////////////////////////////////////////////
+	// Step 2. Map hashes to tree IDs
+	//////////////////////////////////////////////////////////////////////////////
+
+	// 1. Sequential: -hash-workers=1 -data-workers=1
+	if *nHashWorkers == 1 && *nDataWorkers == 1 {
+		fmt.Printf("Making map sequentially...")
 		mapHashToIds = mapHashesToIds(hashes)
 		hashGroupTime = time.Since(start)
 	}
 
-	// 2: -hash-workers=i -data-workers=1(i>1)
+	// 2. Parallel with 1 channel: -hash-workers=i -data-workers=1(i>1)
 	// This implementation spawns i goroutines to compute the hashes of the
 	// input BSTs. Each goroutine sends its (hash, BST ID) pair(s) to a central
 	// manager goroutine using a channel. The central manager updates the map.
 	if *nHashWorkers > 1 && *nDataWorkers == 1 {
-		// Hash
-		fmt.Println("Running implementation 2: parallel with 1 channel...")
-		start := time.Now()
-		hashes = hashTreesParallel(trees, *nHashWorkers)
-		hashTime = time.Since(start)
-		// Hash Groups
+		fmt.Printf("Making map in parallel, %v goroutines and 1 manager channel...\n", *nHashWorkers)
 		mapHashToIds = mapHashesToIdsParallelOneChannel(hashes, *nHashWorkers)
 		hashGroupTime = time.Since(start)
 	}
 
-	// 3: -hash-workers=i -data-workers=i(i>1)
-	// This implementation spawns i goroutines to compute the hashes of the
-	// input BSTs. Each goroutine updates the map individually after acquiring
-	// the mutex.
+	// 3: Parallel with locked map: -hash-workers=i -data-workers=i(i>1)
+	// This implementation spawns i goroutines to hash the input BSTs.
+	// Each goroutine updates the map individually after acquiring the mutex.
 	if *nHashWorkers > 1 && *nDataWorkers > 1 && *nHashWorkers == *nDataWorkers {
-		// Hash
-		fmt.Println("Running implementation 3: parallel with singleLockMap...")
-		start := time.Now()
-		hashes = hashTreesParallel(trees, *nHashWorkers)
-		hashTime = time.Since(start)
-		// Hash Groups
+		fmt.Printf("Making map in parallel, %v goroutines with single-lock map...\n", *nDataWorkers)
 		mapHashToIds = mapHashesToIdsParallelLockedMap(hashes, *nDataWorkers)
 		hashGroupTime = time.Since(start)
-	}
-
-	// Output for Steps 1 & 2:
-	fmt.Printf("hashTime = %v\n", hashTime)
-	fmt.Printf("hashGroupTime = %v\n", hashGroupTime)
-	if testOpt_showHashGroupsOutput {
-		outputHashGroupsSorted(mapHashToIds)
 	}
 
 	// OPTIONAL:
 	// This implementation spawns i goroutines to compute the hashes of the
 	// input BSTs. Then j goroutines are spawned to update the map.
 	if *nHashWorkers > 1 && *nDataWorkers > 1 && *nHashWorkers > *nDataWorkers {
-		// ...
+		// Not yet implemented
+		fmt.Println("\n-hash-workers=i -data-workers=j(i>j>1) not implemented.")
+		fmt.Println("Returning...")
+		return
+	}
+
+	// Output hash group time
+	fmt.Printf("hashGroupTime = %v\n", hashGroupTime)
+	if testOpt_showHashGroupsOutput {
+		outputHashGroupsSorted(mapHashToIds)
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -122,20 +138,18 @@ func main() {
 		showCompOutput = false
 	}
 
-	// 1: -comp-workers=1
-	// Sequential implementation
+	// 1. Sequential: -comp-workers=1
 	if *nCompWorkers == 1 {
 		start := time.Now()
 		uniqueGroups = compareTreesAndGroup(trees, mapHashToIds)
 		compareTreeTime = time.Since(start)
 	}
 
-	// 2:
-	// Parallel implementations
+	// 2. Parallel:
 	// Rather than using a goroutines to compare one pair of trees (a, b), use
 	// each goroutine to process one hash and the possible duplicate trees.
 
-	// First implementation (Testing only)
+	// (1 of 2) First implementation (Testing only)
 	// Goroutine for each hash group
 	// For cmdline argument -comp-workers=-1, use number of hashes in map, H
 	if *nCompWorkers == -1 {
@@ -146,7 +160,7 @@ func main() {
 		compareTreeTime = time.Since(start)
 	}
 
-	// Concurrent Buffer:
+	// (2 of 2) Concurrent Buffer:
 	// Spawn -comp-workers threads to process hashgroups and
 	// use a fixed-size concurrent buffer to communicate with them.
 	if *nCompWorkers > 1 {
@@ -156,6 +170,7 @@ func main() {
 		compareTreeTime = time.Since(start)
 	}
 
+	// Output unique groups
 	if showCompOutput && testOpt_showCompOutput {
 		fmt.Printf("compareTreeTime = %v\n", compareTreeTime)
 		outputGroupsWithDuplicatesSorted(uniqueGroups)
