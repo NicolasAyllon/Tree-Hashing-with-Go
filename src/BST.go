@@ -57,7 +57,6 @@ func main() {
 		hashes = hashTrees(trees)
 		hashTime = time.Since(start)
 		// Hash Groups
-		// start = time.Now()
 		mapHashToIds = mapHashesToIds(hashes)
 		hashGroupTime = time.Since(start)
 	}
@@ -73,7 +72,6 @@ func main() {
 		hashes = hashTreesParallel(trees, *nHashWorkers)
 		hashTime = time.Since(start)
 		// Hash Groups
-		// start = time.Now()
 		mapHashToIds = mapHashesToIdsParallelOneChannel(hashes, *nHashWorkers)
 		hashGroupTime = time.Since(start)
 	}
