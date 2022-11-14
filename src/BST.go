@@ -7,8 +7,8 @@ import (
 )
 
 // Testing
-const testOpt_showHashGroupsOutput = true
-const testOpt_showCompOutput = true
+const testOpt_showHashGroupsOutput = false
+const testOpt_showCompOutput = false
 const testOpt_showCompTime = true
 
 func main() {
@@ -25,6 +25,7 @@ func main() {
 
 	// Read trees from file into slice
 	var trees []*Tree = readTreesFromFile(*inputFile)
+
 	// For cmdline argument -hash-workers=-1, use the number of trees N
 	if *nHashWorkers == -1 {
 		*nHashWorkers = len(trees)
@@ -80,7 +81,7 @@ func main() {
 
 	// 1. Sequential: -hash-workers=1 -data-workers=1
 	if *nHashWorkers == 1 && *nDataWorkers == 1 {
-		fmt.Printf("Making map sequentially...")
+		fmt.Println("Making map sequentially...")
 		mapHashToIds = mapHashesToIds(hashes)
 		hashGroupTime = time.Since(start)
 	}

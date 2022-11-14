@@ -29,7 +29,10 @@ func (m *singleLockMap) addToMap(hash int, treeId int) {
 }
 
 // Optional Implementation 1:
-// map where every slice is protected with a lock.
+// NOTE: fineLockMap was implemented below, 
+// but for lack of time, it was not tested or used.
+// 
+// fineLockMap is a map[int]*[int] where every slice is protected with a lock.
 // There is a map-wide lock for insertions.
 type fineLockMap struct {
 	hashToIds map[int]*safeSlice
