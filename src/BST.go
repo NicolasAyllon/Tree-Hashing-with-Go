@@ -7,9 +7,8 @@ import (
 )
 
 // Testing
-const testOpt_showHashGroupsOutput = false
-const testOpt_showCompOutput = false
-const testOpt_showCompTime = true
+const testOpt_showHashGroupsOutput = true
+const testOpt_showCompOutput = true
 
 func main() {
 
@@ -21,7 +20,7 @@ func main() {
 	flag.Parse()
 	// Use all the variables!
 	_, _, _, _ = nHashWorkers, nDataWorkers, nCompWorkers, inputFile
-	fmt.Printf("%v: hash-workers = %v, data-workers = %v, comp-workers = %v\n", *inputFile, *nHashWorkers, *nDataWorkers, *nCompWorkers)
+	// fmt.Printf("%v: hash-workers = %v, data-workers = %v, comp-workers = %v\n", *inputFile, *nHashWorkers, *nDataWorkers, *nCompWorkers)
 
 	// Read trees from file into slice
 	var trees []*Tree = readTreesFromFile(*inputFile)
@@ -51,7 +50,7 @@ func main() {
 
 	// 1. Sequential
 	if *nHashWorkers == 1 {
-		fmt.Println("Hashing trees sequentially...")
+		// fmt.Println("Hashing trees sequentially...")
 		start = time.Now()
 		hashes = hashTrees(trees)
 		hashTime = time.Since(start)
@@ -59,7 +58,7 @@ func main() {
 
 	// 2. Parallel
 	if *nHashWorkers > 1 {
-		fmt.Printf("Hashing trees in parallel (%v goroutines)\n", *nHashWorkers)
+		// fmt.Printf("Hashing trees in parallel (%v goroutines)\n", *nHashWorkers)
 		start = time.Now()
 		hashes = hashTreesParallel(trees, *nHashWorkers)
 		hashTime = time.Since(start)
@@ -81,7 +80,7 @@ func main() {
 
 	// 1. Sequential: -hash-workers=1 -data-workers=1
 	if *nHashWorkers == 1 && *nDataWorkers == 1 {
-		fmt.Println("Making map sequentially...")
+		// fmt.Println("Making map sequentially...")
 		mapHashToIds = mapHashesToIds(hashes)
 		hashGroupTime = time.Since(start)
 	}
@@ -91,7 +90,7 @@ func main() {
 	// input BSTs. Each goroutine sends its (hash, BST ID) pair(s) to a central
 	// manager goroutine using a channel. The central manager updates the map.
 	if *nHashWorkers > 1 && *nDataWorkers == 1 {
-		fmt.Printf("Making map in parallel, %v goroutines and 1 manager channel...\n", *nHashWorkers)
+		// fmt.Printf("Making map in parallel, %v goroutines and 1 manager channel...\n", *nHashWorkers)
 		mapHashToIds = mapHashesToIdsParallelOneChannel(hashes, *nHashWorkers)
 		hashGroupTime = time.Since(start)
 	}
@@ -100,7 +99,7 @@ func main() {
 	// This implementation spawns i goroutines to hash the input BSTs.
 	// Each goroutine updates the map individually after acquiring the mutex.
 	if *nHashWorkers > 1 && *nDataWorkers > 1 && *nHashWorkers == *nDataWorkers {
-		fmt.Printf("Making map in parallel, %v goroutines with single-lock map...\n", *nDataWorkers)
+		// fmt.Printf("Making map in parallel, %v goroutines with single-lock map...\n", *nDataWorkers)
 		mapHashToIds = mapHashesToIdsParallelLockedMap(hashes, *nDataWorkers)
 		hashGroupTime = time.Since(start)
 	}
@@ -149,8 +148,8 @@ func main() {
 	// Goroutine for each hash group
 	// For cmdline argument -comp-workers=-1, use number of hashes in map, H
 	if *nCompWorkers == -1 {
-		H := len(mapHashToIds)
-		fmt.Printf("Using 1 goroutine per hashGroup (%v total)\n", H)
+		// H := len(mapHashToIds)
+		// fmt.Printf("Using 1 goroutine per hashGroup (%v total)\n", H)
 		start := time.Now()
 		uniqueGroups = compareTreesAndGroupParallel(trees, mapHashToIds)
 		compareTreeTime = time.Since(start)
@@ -160,7 +159,7 @@ func main() {
 	// Spawn -comp-workers threads to process hashgroups and
 	// use a fixed-size concurrent buffer to communicate with them.
 	if *nCompWorkers > 1 {
-		fmt.Printf("Using %v goroutines with concurrent buffer\n", *nCompWorkers)
+		// fmt.Printf("Using %v goroutines with concurrent buffer\n", *nCompWorkers)
 		start := time.Now()
 		uniqueGroups = compareTreesAndGroupParallelBuffered(trees, mapHashToIds, *nCompWorkers)
 		compareTreeTime = time.Since(start)
@@ -170,7 +169,5 @@ func main() {
 	if showCompOutput && testOpt_showCompOutput {
 		fmt.Printf("compareTreeTime = %v\n", compareTreeTime)
 		outputGroupsWithDuplicatesSorted(uniqueGroups)
-	} else if testOpt_showCompTime {
-		fmt.Printf("compareTreeTime = %v\n", compareTreeTime)
 	}
 }
