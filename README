@@ -1,15 +1,10 @@
 Hello!
 
 I found this assignment quite challenging, as there was a lot to learn to
-even get off the ground with Go.
+get off the ground with Go, but it was ultimately exciting to get everything working!
 
 For parallelizing tree comparisons, I decided to assign goroutines hashes
 instead of (tree1, tree2) pairs, so this would work better on fine.txt.
-
-Since previous labs asked to report the total time spent, I will estimate this
-lab was about 70 hours. 
-
-I still wish to complete the course and will do my best.
 
 Thank you,
 
