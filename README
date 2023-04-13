@@ -1,7 +1,7 @@
 Hello!
 
-I found this assignment quite challenging, as there was a lot to learn to
-get off the ground with Go, but it was ultimately exciting to get everything working!
+This assignment was a challenge, as there was a lot to learn to get off 
+the ground with Go, but it was ultimately exciting to get everything working!
 
 For parallelizing tree comparisons, I decided to assign goroutines hashes
 instead of (tree1, tree2) pairs, so this would work better on fine.txt.
